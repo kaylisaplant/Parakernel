@@ -1,0 +1,5 @@
+{
+    "argv":["@Python3_EXECUTABLE@", "@CMAKE_INSTALL_PREFIX@/@CMAKE_PROJECT_NAME@/paraview_kernel.py", "-f", "{connection_file}"],
+    "display_name":"IParaView Kernel",
+    "language":"python"
+}
