@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 from os.path import join, abspath, realpath, dirname
-PARAVIEW_INSTALL_DIR =        "@ParaView_PREFIX_PATH@"
-PARAVIEW_PYTHON_DIR =         join(PARAVIEW_INSTALL_DIR, "@PARAVIEW_PYTHONPATH@")
+PARAVIEW_INSTALL_DIR =        "shft/app/download.php?submit=Download&version=nightly&type=binary&os=Linux&downloadFile=ParaView-master-5.10.1-1521-g1d16ebe72e-MPI-Linux-Python3.9-x86_64"
+PARAVIEW_PYTHON_DIR =         join(PARAVIEW_INSTALL_DIR, "lib/python3.9/site-packages")
 PARAVIEW_CLIENT_EXECUTABLE =  join(PARAVIEW_INSTALL_DIR, "bin/paraview")
 PARAVIEW_SERVER_EXECUTABLE =  join(PARAVIEW_INSTALL_DIR, "bin/pvserver")
 PARAVIEW_QT_PLUGIN_NAME =     "PVQtJupyterPlugin"
