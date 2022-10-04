@@ -1,5 +1,0 @@
-{
-    "argv":["/usr/bin/python3.9", "/usr/local/share/jupyter/kernels/IParaView/paraview_kernel.py", "-f", "{connection_file}"],
-    "display_name":"IParaView Kernel",
-    "language":"python"
-}
