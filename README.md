@@ -9,7 +9,7 @@ Based on: https://gitlab.kitware.com/paraview/iparaview-kernel
 docker build -t <image_name>:latest
 ```
 
-* Uising Podman
+* Using Podman
 ```bash
 podman build -t <image_name>:latest --format docker
 ```
