@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.16)
+
 project(IParaViewKernel)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
