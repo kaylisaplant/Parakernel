@@ -21,8 +21,9 @@ WORKDIR /root/.local/share/jupyter/kernels/paraview
 RUN cmake -DParaView_PREFIX_PATH=/shft/app/paraview/build /shft/app/iparaview-kernel
 RUN make
 RUN make install
-
+WORKDIR /docker/conf.d
+RUN git clone https://github.com/kaylisaplant/config
 WORKDIR /root
 ENV PYTHONPATH=/shft/app/paraview/build/lib/python3.8/site-packages
-CMD ["jupyter-notebook", "--ip=0.0.0.0", "--no-browser", "--allow-root"]
-
+CMD ["/srv/entrypoint.sh"]
+EXPOSE 8888
