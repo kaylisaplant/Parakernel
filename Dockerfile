@@ -21,8 +21,10 @@ WORKDIR /root/.local/share/jupyter/kernels/paraview
 RUN cmake -DParaView_PREFIX_PATH=/shft/app/paraview/build /shft/app/iparaview-kernel
 RUN make
 RUN make install
-WORKDIR /docker/conf.d
+WORKDIR /shft/app/iparaview-kernel/docker/conf.d
 RUN git clone https://github.com/kaylisaplant/config
+RUN mv /shft/app/iparaview-kernel/docker/conf.d/config/jupyter.conf /shft/app/iparaview-kernel/docker/conf.d/jupyter.conf 
+
 WORKDIR /root
 ENV PYTHONPATH=/shft/app/paraview/build/lib/python3.8/site-packages
 CMD ["/srv/entrypoint.sh"]
