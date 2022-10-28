@@ -18,5 +18,5 @@ podman build -t <image_name>:latest --format docker
 
 * On a local machine using Docker:
 ```bash
-docker run -p 0.0.0.0:8888:8888 <image_name>:latest
+docker run -p 0.0.0.0:8888:8888 -p 0.0.0.0:8080:8080 <image_name>:latest
 ```
