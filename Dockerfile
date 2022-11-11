@@ -12,7 +12,13 @@ RUN python3 -m ipykernel install --user
 RUN apt-get install -y npm
 RUN pip3 install wheel
 
-RUN pip3 install git+https://github.com/Kitware/ipyparaview.git
+RUN apt-get -y install software-properties-common
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A6DCF7707EBC211F
+RUN apt-add-repository "deb http://ppa.launchpad.net/ubuntu-mozilla-security/ppa/ubuntu focal main"
+RUN apt-get -y update
+RUN apt-get -y install firefox
+
+RUN pip3 install git+https://github.com/NVIDIA/ipyparaview.git
 RUN jupyter nbextension enable --py --sys-prefix ipyparaview
 
 WORKDIR /shft/app
@@ -31,5 +37,7 @@ WORKDIR /root
 ENV PYTHONPATH=/shft/app/paraview/build/lib/python3.8/site-packages
 CMD ["/srv/entrypoint.sh"]
 # CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+
+RUN cp /shft/app/iparaview-kernel/Test.ipynb .
 
 EXPOSE 8888
