@@ -5,7 +5,7 @@ RUN apt-get -y install git python3 python3-pip python3-dev gcc
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install jupyter
+RUN pip3 install notebook==5.4.1
 RUN pip3 install matplotlib numpy scipy
 RUN python3 -m pip install ipykernel
 RUN python3 -m ipykernel install --user
