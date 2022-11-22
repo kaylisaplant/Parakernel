@@ -4,7 +4,6 @@ numpy
 scipy
 ipykernel
 ipykernel install --user
-npm
 wheel
 git+https://github.com/Kitware/ipyparaview.git
 jupyter nbextension enable --py --sys-prefix ipyparaview
