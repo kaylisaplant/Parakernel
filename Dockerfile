@@ -5,12 +5,7 @@ RUN apt-get -y install git python3 python3-pip python3-dev gcc
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install notebook==5.4.1
-RUN pip3 install matplotlib numpy scipy
-RUN python3 -m pip install ipykernel
-RUN python3 -m ipykernel install --user
-RUN apt-get install -y npm
-RUN pip3 install wheel
+RUN pip3 install -r requirements.txt
 
 RUN apt-get -y install software-properties-common
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A6DCF7707EBC211F
@@ -18,7 +13,6 @@ RUN apt-add-repository "deb http://ppa.launchpad.net/ubuntu-mozilla-security/ppa
 RUN apt-get -y update
 RUN apt-get -y install firefox
 
-RUN pip3 install git+https://github.com/NVIDIA/ipyparaview.git
 RUN jupyter nbextension enable --py --sys-prefix ipyparaview
 
 WORKDIR /shft/app
