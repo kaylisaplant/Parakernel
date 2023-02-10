@@ -50,7 +50,18 @@ RUN rm -rf $mpich_prefix
 #-------------------------------------------------------------------------------
 
 
-RUN apt-get install --yes git python3 python3-dev pip cmake
+RUN apt-get install --yes git python3 python3-dev pip libssl-dev
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.24.3/cmake-3.24.3.tar.gz
+RUN tar xf cmake-3.24.3.tar.gz
+WORKDIR /shft/app/cmake-3.24.3
+RUN ./configure
+RUN make
+# Then to install it to your system finally do 
+RUN make install 
+
+# Do this to refresh your console 
+# RUN hash -r
+
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
 WORKDIR /shft/app
@@ -104,6 +115,30 @@ RUN /sbin/ldconfig
 
 #-------------------------------------------------------------------------------
 
+# Install miniconda
+ENV CONDA_DIR /opt/conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+     /bin/bash ~/miniconda.sh -b -p /opt/conda
+
+# Put conda in path so we can use conda activate
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+RUN conda install --quiet --yes -c conda-forge \
+    ipywidgets \
+    jupyter \
+    jupyterlab \
+    ipython \
+    pillow \
+    nodejs \
+    numpy \
+    matplotlib \
+    scipy
+
+#https://github.com/NVIDIA/ipyparaview/issues/40
+RUN conda install --quiet --yes -c conda-forge ipywidgets==7.7.1
+
+COPY start_xvfb.sh /sbin/start_xvfb.sh
+RUN chmod a+x /sbin/start_xvfb.sh
 
 
 RUN apt-get update && apt-get install -y \
@@ -136,4 +171,3 @@ RUN cp /srv/fluxbox/init /root/.fluxbox/init
 
 CMD ["/srv/entrypoint.sh"]
 EXPOSE 8080
-
