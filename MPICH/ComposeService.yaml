@@ -1,0 +1,13 @@
+services:
+  jupyter:
+    image: kmcbride/jupyterlayer:latest
+    container_name: jupyter
+    ports:
+      - '8888:8888'
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
+    name: jupyter_network

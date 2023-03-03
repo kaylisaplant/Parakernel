@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # deployment name
+  name: xeyes
+spec:
+  # number of replicas
+  replicas: 1
+  selector:
+    # this sets the label the deployment is looking for
+    matchLabels:
+      app: xeyes
+  template:
+    metadata:
+      # labels are how the deployments keep track of their objects. This sets a label on the pod
+      labels:
+        app: xeyes
+    spec:
+      containers:
+      - name: xeyes
+        image: "gns3/xeyes:latest"
+        env:
+          - name: DISPLAY
+            value: "novnc:0.0"
+        resources: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # deployment name
+  name: novnc
+  annotations:
+    ccs.ornl.gov/batchScheduler: "true"
+    ccs.ornl.gov/fs: olcf
+spec:
+  # number of replicas
+  replicas: 1
+  selector:
+    # this sets the label the deployment is looking for
+    matchLabels:
+      app: novnc
+  template:
+    metadata:
+      # labels are how the deployments keep track of their objects. This sets a label on the pod
+      labels:
+        app: novnc
+    spec:
+      containers:
+      # - name: xeyes
+      #   image: "gns3/xeyes:latest"
+      #   env:
+      #     - name: DISPLAY
+      #       value: "novnc:0.0"
+      #   resources: {}
+      - name: novnc
+        # using the base image
+        image: "quay.io/kincl/docker-novnc:latest"
+        env:
+          - name: DISPLAY_WIDTH
+            value: "1280"
+          - name: DISPLAY_HEIGHT
+            value: "800"
+          - name: HOME
+            value: "/ccs/home/csc435_auser"
+        resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+# Service name
+  name: novnc
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: x11
+    port: 6000
+    targetPort: 6000
+    protocol: TCP
+  selector:
+  # A label that will match a pod
+    app: novnc
+  sessionAffinity: None
+  # How the service is exposed. For routes the type would be ClusterIP
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+# Route Name
+  name: novnc
+  labels:
+    ccs.ornl.gov/externalRoute: 'true'
+spec:
+ # The URL. Must be unique across cluster.
+  host: vnc-csc435.apps.marble.ccs.ornl.gov
+  tls:
+  # redirects traffic from insecure port to secure port
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+  # This is a route and thus points to a service
+    kind: Service
+  # name of the service to point to
+    name: novnc
+  port:
+    targetPort: http
