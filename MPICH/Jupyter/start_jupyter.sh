@@ -7,5 +7,5 @@ jupyter-notebook \
     --ip=0.0.0.0 \
     --no-browser \
     --allow-root \
-    --NotebookApp.token='' \
-    --NotebookApp.password=''
+    --NotebookApp.token='Jupyter'\
+    --NotebookApp.password='Jupyter'
