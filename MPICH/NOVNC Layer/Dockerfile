@@ -1,15 +1,20 @@
-FROM kmcbride/paraviewlayer:latest
-RUN apt-get update && apt-get install -y \
-      bash                               \
-      fluxbox                            \
-      git                                \
-      net-tools                          \
-      novnc                              \
-      supervisor                         \
-      x11vnc                             \
-      xterm                              \
-      xvfb                               \
+# FROM kmcbride/paraviewlayer:latest
+FROM parakernel/pvserver:latest
+
+RUN \
+    apt-get update && \
+    apt-get install --yes \
+      bash                \
+      fluxbox             \
+      git                 \
+      net-tools           \
+      novnc               \
+      supervisor          \
+      x11vnc              \
+      xterm               \
+      xvfb                \
       terminator
+
 
 RUN ln -s /usr/share/novnc/vnc_auto.html /usr/share/novnc/index.html
 
@@ -26,7 +31,7 @@ COPY novnc/passwd /root/.vnc/passwd
 RUN mkdir -p /root/.fluxbox
 RUN ln -s /srv/fluxbox/startup.sh /root/.fluxbox/startup
 RUN cp /srv/fluxbox/init /root/.fluxbox/init
-COPY . /srv
+# COPY . /srv
 COPY novnc/passwd /root/.vnc/passwd
 
 CMD ["/srv/entrypoint.sh"]
