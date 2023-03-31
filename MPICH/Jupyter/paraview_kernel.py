@@ -46,37 +46,37 @@ class IParaViewKernel(IPythonKernel):
     return super().do_shutdown(*args, **kwargs)
 
 # -----------------------------------------------------------------------------
-def launch_paraview_server(logger) -> Tuple[subprocess.Popen, str, int]:
-  """
-  launch_paraview_server(logger) -> (server process, host, port)
-
-  Launch the ParaView server. Read the output of the process and blocks until
-  the server is not ready to accept connections.
-  If the environment contains the variable `IPARAVIEW_PORT_RANGE` then it will
-  be used to determine the range of available port for the server.
-  Default range is [11000, 50000].
-  """
-
-  host = "localhost"
-  portRange = (11000, 50000)
-  if "IPARAVIEW_PORT_RANGE" in os.environ:
-    try:
-      portRange = tuple(map(int, os.getenv("IPARAVIEW_PORT_RANGE").split(",")))
-      assert len(portRange) == 2
-    except:
-      logger.warning("IPARAVIEW_PORT_RANGE syntax is wrong, ignoring")
-
-  port = random.randint(*portRange)
-  command = [PARAVIEW_SERVER_EXECUTABLE, "--multi-clients", "--server-port", str(port)]
-  process = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
-  global_launched_process.append(process)
-
-  if process is not None:
-    for line in process.stdout:
-      if line.startswith('Accepting connection'):
-        break
-
-  return process, host, port
+# def launch_paraview_server(logger) -> Tuple[subprocess.Popen, str, int]:
+#   """
+#   launch_paraview_server(logger) -> (server process, host, port)
+#
+#   Launch the ParaView server. Read the output of the process and blocks until
+#   the server is not ready to accept connections.
+#   If the environment contains the variable `IPARAVIEW_PORT_RANGE` then it will
+#   be used to determine the range of available port for the server.
+#   Default range is [11000, 50000].
+#   """
+#
+#   host = "localhost"
+#   portRange = (11000, 50000)
+#   if "IPARAVIEW_PORT_RANGE" in os.environ:
+#     try:
+#       portRange = tuple(map(int, os.getenv("IPARAVIEW_PORT_RANGE").split(",")))
+#       assert len(portRange) == 2
+#     except:
+#       logger.warning("IPARAVIEW_PORT_RANGE syntax is wrong, ignoring")
+#
+#   port = random.randint(*portRange)
+#   command = [PARAVIEW_SERVER_EXECUTABLE, "--multi-clients", "--server-port", str(port)]
+#   process = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
+#   global_launched_process.append(process)
+#
+#   if process is not None:
+#     for line in process.stdout:
+#       if line.startswith('Accepting connection'):
+#         break
+#
+#   return process, host, port
 
 # -----------------------------------------------------------------------------
 class ParaviewClientLauncher:
@@ -91,16 +91,18 @@ class ParaviewClientLauncher:
   python interpreter is able to react to events sended by Qt clients
   """
 
-  host = "localhost"
-  port = 11111
-  app = None
-  _counter = 1
+  def __init__(self):
+      self.host = None  # "localhost"
+      self.port = None  # 11111
+      self.app = None
+      self._counter = 1
 
   def __call__(self, _line) -> int:
     command = [PARAVIEW_CLIENT_EXECUTABLE,
       "--server-url"         , "cs://{}:{}".format(self.host, self.port),
       "--plugin-search-paths", PARAVIEW_QT_PLUGIN_PATH,
       "--plugins"            , PARAVIEW_QT_PLUGIN_NAME]
+    print(f"Paraview starting as: {command=}")
     process = subprocess.Popen(command)
     global_launched_process.append(process)
 
@@ -133,11 +135,13 @@ def main():
   app.name = "IParaView"
   app.initialize()
 
-  # Launch the server and connect to it
-  process, host, port = launch_paraview_server(app.log)
-  if (process is None or process.poll() is not None):
-    app.log.error("Could not launch pvserver")
-    return
+  # # Launch the server and connect to it
+  # process, host, port = launch_paraview_server(app.log)
+  # if (process is None or process.poll() is not None):
+  #   app.log.error("Could not launch pvserver")
+  #   return
+  host = os.environ["PARAKERNEL_PVSERVER_HOST"]
+  port = os.environ["PARAKERNEL_PVSERVER_PORT"]
 
   # Run prelude to setup the default environment. Make sure to make the kernel fail if
   # the prelude couldn't be executed
