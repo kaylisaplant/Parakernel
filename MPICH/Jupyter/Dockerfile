@@ -22,7 +22,7 @@ RUN make install
 WORKDIR /root
 ENV PYTHONPATH=/shft/app/paraview/build/lib/python3.8/site-packages
 CMD ["/srv/entrypoint.sh"]
-# CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+# CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password='Jupyter'"]
 
 RUN cp /shft/app/iparaview-kernel/Test.ipynb .
 
