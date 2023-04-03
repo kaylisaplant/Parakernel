@@ -56,6 +56,26 @@ fn main() {
                 }
             }
         }
+
+        "list_ips" => {
+            assert!(args.contains_id("interface_name"));
+            let name = args.get_one::<String>("interface_name").unwrap().as_str();
+            
+            println!("IPv4 Addresses for {}:", name);
+            for ip in ips.ipv4_addrs {
+                if name == ip.name.unwrap_or_default() {
+                    println!(" - {}", ip.ip)
+                }
+            }
+
+            println!("IPv6 Addresses for {}:", name);
+            for ip in ips.ipv6_addrs {
+                if name == ip.name.unwrap_or_default() {
+                    println!(" - {}", ip.ip)
+                }
+            }
+        }
+
         &_ => todo!()
     }
 }
