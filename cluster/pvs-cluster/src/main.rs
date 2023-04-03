@@ -79,18 +79,3 @@ fn main() {
         &_ => todo!()
     }
 }
-
-
-//            for ip in ips.ipv4_addrs {
-//                println!(
-//                    "Interface name for IPv4 Address {} is: {}",
-//                    ip.ip, ip.name.unwrap_or_default()
-//                );
-//            }
-//
-//            for ip in ips.ipv6_addrs {
-//                println!(
-//                    "Interface name for IPv6 Address {} is: {}",
-//                    ip.ip, ip.name.unwrap_or_default()
-//                );
-//            }
