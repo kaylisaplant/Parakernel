@@ -1,7 +1,7 @@
 mod network;
 use network::{get_local_ips, ipstr_starts_with};
 
-use clap::{Arg, Command};
+use clap::{Arg, Command, ArgAction};
 
 fn main() {
 
@@ -46,34 +46,66 @@ fn main() {
             .required(false)
             .value_parser(clap::value_parser!(i32))
         )
-        .get_matches();
+        .arg(
+            Arg::new("verbose")
+            .short('v')
+            .long("verbose")
+            .help("Don't output headers")
+            .num_args(0)
+            .required(false)
+            .action(ArgAction::SetTrue)
+        ).get_matches();
 
     let ips = get_local_ips();
 
-    let ip_version = args.get_one::<i32>("ip_version");
+    let ip_version =   args.get_one::<i32>("ip_version");
+    let verbose    = * args.get_one::<bool>("verbose").unwrap();
+    let mut print_v4 = false;
+    let mut print_v6 = false;
+    if ip_version.is_some() {
+        match * ip_version.unwrap() {
+            4 => print_v4 = true,
+            6 => print_v6 = true,
+            _ => panic!(
+                "Please specify IP version 4 or 6, or ommit `--ip-version` for both."
+            )
+        }
+    } else {
+        print_v4 = true;
+        print_v6 = true;
+    }
+
     let operation = args.get_one::<String>("operation").unwrap();
     match operation.as_str() {
         "list_interfaces" => {
             let mut ipv4_names = Vec::new();
             let mut ipv6_names = Vec::new();
 
-            if ip_version.is_some() && *ip_version.unwrap() == 4 {
-                println!("IPv4 Interfaces:");
+            if print_v4 {
+                if verbose {println!("IPv4 Interfaces:");}
                 for ip in ips.ipv4_addrs {
-                    let name: &String = &ip.name.unwrap_or_default();
+                    let name: & String = & ip.name.unwrap_or_default();
                     if ! ipv4_names.contains(name) {
-                        println!(" - {}", name);
+                        if verbose {
+                            println!(" - {}", name);
+                        } else {
+                            println!("{}", name);
+                        }
                         ipv4_names.push(name.to_string());
                     }
                 }
             }
 
-            if ip_version.is_some() && *ip_version.unwrap() == 6 {
-                println!("IPv6 Interfaces:");
+            if print_v6 {
+                if verbose {println!("IPv6 Interfaces:");}
                 for ip in ips.ipv6_addrs {
-                    let name: &String = &ip.name.unwrap_or_default();
+                    let name: & String = & ip.name.unwrap_or_default();
                     if ! ipv6_names.contains(name) {
-                        println!(" - {}", name);
+                        if verbose {
+                            println!(" - {}", name);
+                        } else {
+                            println!("{}", name);
+                        }
                         ipv6_names.push(name.to_string());
                     }
                 }
@@ -85,26 +117,34 @@ fn main() {
             let name = args.get_one::<String>("interface_name").unwrap().as_str();
             let starting_octets = args.get_one::<String>("ip_start");
 
-            if ip_version.is_some() && *ip_version.unwrap() == 4 {
-                println!("IPv4 Addresses for {}:", name);
+            if print_v4 {
+                if verbose {println!("IPv4 Addresses for {}:", name);}
                 for ip in ips.ipv4_addrs {
                     if name == ip.name.unwrap_or_default() {
                         if ! ipstr_starts_with(& ip.ip, & starting_octets){
                             continue;
                         }
-                        println!(" - {}", ip.ip)
+                        if verbose {
+                            println!(" - {}", ip.ip);
+                        } else {
+                            println!("{}", ip.ip);
+                        }
                     }
                 }
             }
 
-            if ip_version.is_some() && *ip_version.unwrap() == 6 {
-                println!("IPv6 Addresses for {}:", name);
+            if print_v6 {
+                if verbose {println!("IPv6 Addresses for {}:", name);}
                 for ip in ips.ipv6_addrs {
                     if name == ip.name.unwrap_or_default() {
                         if ! ipstr_starts_with(& ip.ip, & starting_octets){
                             continue;
                         }
-                        println!(" - {}", ip.ip)
+                        if verbose {
+                            println!(" - {}", ip.ip);
+                        } else {
+                            println!("{}", ip.ip);
+                        }
                     }
                 }
             }

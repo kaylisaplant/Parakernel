@@ -56,6 +56,6 @@ pub fn ipstr_starts_with(
     ) -> bool {
     match * starting_octets {
         Some(start) => ip.to_string().starts_with(start),
-        None => false,
+        None => true,
     }
 }
