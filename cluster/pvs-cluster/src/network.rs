@@ -49,3 +49,13 @@ pub fn get_local_ips() -> LocalIpAddresses {
         ipv6_addrs: ipv6_addrs
     }
 }
+
+
+pub fn ipstr_starts_with(
+        ip: & IpAddr, starting_octets: & Option<& String>
+    ) -> bool {
+    match * starting_octets {
+        Some(start) => ip.to_string().starts_with(start),
+        None => false,
+    }
+}
