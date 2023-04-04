@@ -1,9 +1,12 @@
 mod network;
 use network::{get_local_ips, ipstr_starts_with};
 
+mod connection;
+use connection::{cread, cwrite};
+
 use clap::{Arg, Command, ArgAction};
 
-fn main() {
+fn main() -> std::io::Result<()> {
 
     let args = Command::new("ParaView Server Cluster")
         .version("1.0")
@@ -17,7 +20,7 @@ fn main() {
             .help("Operation to be performed")
             .num_args(1)
             .required(true)
-            .value_parser(["list_interfaces", "list_ips"])
+            .value_parser(["list_interfaces", "list_ips", "listen", "claim"])
         )
         .arg(
             Arg::new("interface_name")
@@ -54,7 +57,25 @@ fn main() {
             .num_args(0)
             .required(false)
             .action(ArgAction::SetTrue)
-        ).get_matches();
+        )
+        .arg(
+            Arg::new("host")
+            .long("host")
+            .value_name("HOST")
+            .help("Host to bind to")
+            .num_args(1)
+            .required(false)
+        )
+        .arg(
+            Arg::new("port")
+            .long("port")
+            .value_name("PORT")
+            .help("Port to bind server and client to.")
+            .num_args(1)
+            .required(false)
+            .value_parser(clap::value_parser!(i32))
+        )
+        .get_matches();
 
     let ips = get_local_ips();
 
@@ -150,6 +171,29 @@ fn main() {
             }
         }
 
+        "listen" => {
+            assert!(args.contains_id("host"));
+            assert!(args.contains_id("port"));
+
+            let host =   args.get_one::<String>("host").unwrap().as_str();
+            let port = * args.get_one::<i32>("port").unwrap();
+
+            let rec = cread(host, port)?;
+            println!("REC: {:?}", rec);
+        }
+
+        "claim" => {
+            assert!(args.contains_id("host"));
+            assert!(args.contains_id("port"));
+
+            let host =   args.get_one::<String>("host").unwrap().as_str();
+            let port = * args.get_one::<i32>("port").unwrap();
+
+            let _rec = cwrite(host, port, "hi there!");
+        }
+
         &_ => todo!()
     }
+
+    Ok(())
 }
