@@ -1067,6 +1067,7 @@ dependencies = [
 name = "pvs-cluster"
 version = "0.1.0"
 dependencies = [
+ "bson",
  "clap",
  "mongodb",
  "pnet",

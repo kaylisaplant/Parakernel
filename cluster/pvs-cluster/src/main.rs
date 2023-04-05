@@ -4,8 +4,12 @@ use network::{get_local_ips, ipstr_starts_with};
 mod connection;
 use connection::{cread, cwrite};
 
+mod db;
+use db::{connect_to_db};
+
 use clap::{Arg, Command, ArgAction};
 use std::time::{SystemTime, UNIX_EPOCH};
+use mongodb::{error::Error};
 
 fn unix_timestamp() -> u64 {
     let now = SystemTime::now();
@@ -13,8 +17,8 @@ fn unix_timestamp() -> u64 {
     since_epoch.as_secs()
 }
 
-
-fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> Result<(), Error> {
 
     let args = Command::new("ParaView Server Cluster")
         .version("1.0")
@@ -82,6 +86,47 @@ fn main() -> std::io::Result<()> {
             .num_args(1)
             .required(false)
             .value_parser(clap::value_parser!(i32))
+        )
+        .arg(
+            Arg::new("db_host")
+            .long("db-host")
+            .value_name("DATABSE HOST")
+            .help("Database Host Address")
+            .num_args(1)
+            .required(false)
+        )
+        .arg(
+            Arg::new("db_port")
+            .long("db-port")
+            .value_name("PORT")
+            .help("Port to bind to on database server")
+            .num_args(1)
+            .required(false)
+            .value_parser(clap::value_parser!(i32))
+        )
+        .arg(
+            Arg::new("db_user")
+            .long("db-user")
+            .value_name("DATABSE USER")
+            .help("Username for database server")
+            .num_args(1)
+            .required(false)
+        )
+        .arg(
+            Arg::new("db_password")
+            .long("db-password")
+            .value_name("PASSWORD")
+            .help("Password for database")
+            .num_args(1)
+            .required(false)
+        )
+        .arg(
+            Arg::new("db_name")
+            .long("db-name")
+            .value_name("NAME")
+            .help("Name of database")
+            .num_args(1)
+            .required(false)
         )
         .get_matches();
 
@@ -182,10 +227,27 @@ fn main() -> std::io::Result<()> {
         "listen" => {
             assert!(args.contains_id("host"));
             assert!(args.contains_id("port"));
+            assert!(args.contains_id("db_host"));
+            assert!(args.contains_id("db_port"));
+            assert!(args.contains_id("db_user"));
+            assert!(args.contains_id("db_password"));
+            assert!(args.contains_id("db_name"));
 
             let host =   args.get_one::<String>("host").unwrap().as_str();
             let port = * args.get_one::<i32>("port").unwrap();
 
+            let db_host =   args.get_one::<String>("db_host").unwrap().as_str();
+            let db_port = * args.get_one::<i32>("db_port").unwrap();
+            let db_user =   args.get_one::<String>("db_user").unwrap().as_str();
+            let db_password = args.get_one::<String>("db_password").unwrap().as_str();
+            let db_name =   args.get_one::<String>("db_name").unwrap().as_str();
+
+            let db = connect_to_db(
+                db_user, db_password, db_host, db_port, db_name
+            ).await?;
+            let coll = db.collection::<Item>(db_name);
+
+            println!("Listening for clients...");
             let rec = cread(host, port)?;
             println!("REC: {:?}", rec);
         }
