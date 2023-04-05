@@ -1,8 +1,4 @@
-#![allow(
-    clippy::manual_let_else,
-    clippy::too_many_lines,
-    clippy::uninlined_format_args
-)]
+#![allow(clippy::too_many_lines)]
 
 #[macro_use]
 mod macros;
@@ -18,17 +14,17 @@ fn test_split_for_impl() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "S",
         generics: Generics {
             lt_token: Some,
             params: [
-                GenericParam::Lifetime(LifetimeParam {
+                Lifetime(LifetimeDef {
                     lifetime: Lifetime {
                         ident: "a",
                     },
                 }),
-                GenericParam::Lifetime(LifetimeParam {
+                Lifetime(LifetimeDef {
                     lifetime: Lifetime {
                         ident: "b",
                     },
@@ -39,25 +35,27 @@ fn test_split_for_impl() {
                         },
                     ],
                 }),
-                GenericParam::Type(TypeParam {
+                Type(TypeParam {
                     attrs: [
                         Attribute {
-                            style: AttrStyle::Outer,
-                            meta: Meta::Path {
+                            style: Outer,
+                            path: Path {
                                 segments: [
                                     PathSegment {
                                         ident: "may_dangle",
+                                        arguments: None,
                                     },
                                 ],
                             },
+                            tokens: TokenStream(``),
                         },
                     ],
                     ident: "T",
                     colon_token: Some,
                     bounds: [
-                        TypeParamBound::Lifetime {
+                        Lifetime(Lifetime {
                             ident: "a",
-                        },
+                        }),
                     ],
                     eq_token: Some,
                     default: Some(Type::Tuple),
@@ -66,22 +64,25 @@ fn test_split_for_impl() {
             gt_token: Some,
             where_clause: Some(WhereClause {
                 predicates: [
-                    WherePredicate::Type(PredicateType {
+                    Type(PredicateType {
                         bounded_ty: Type::Path {
                             path: Path {
                                 segments: [
                                     PathSegment {
                                         ident: "T",
+                                        arguments: None,
                                     },
                                 ],
                             },
                         },
                         bounds: [
-                            TypeParamBound::Trait(TraitBound {
+                            Trait(TraitBound {
+                                modifier: None,
                                 path: Path {
                                     segments: [
                                         PathSegment {
                                             ident: "Debug",
+                                            arguments: None,
                                         },
                                     ],
                                 },
@@ -92,7 +93,7 @@ fn test_split_for_impl() {
             }),
         },
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -127,25 +128,27 @@ fn test_split_for_impl() {
 fn test_ty_param_bound() {
     let tokens = quote!('a);
     snapshot!(tokens as TypeParamBound, @r###"
-    TypeParamBound::Lifetime {
+    Lifetime(Lifetime {
         ident: "a",
-    }
+    })
     "###);
 
     let tokens = quote!('_);
     snapshot!(tokens as TypeParamBound, @r###"
-    TypeParamBound::Lifetime {
+    Lifetime(Lifetime {
         ident: "_",
-    }
+    })
     "###);
 
     let tokens = quote!(Debug);
     snapshot!(tokens as TypeParamBound, @r###"
-    TypeParamBound::Trait(TraitBound {
+    Trait(TraitBound {
+        modifier: None,
         path: Path {
             segments: [
                 PathSegment {
                     ident: "Debug",
+                    arguments: None,
                 },
             ],
         },
@@ -154,12 +157,13 @@ fn test_ty_param_bound() {
 
     let tokens = quote!(?Sized);
     snapshot!(tokens as TypeParamBound, @r###"
-    TypeParamBound::Trait(TraitBound {
-        modifier: TraitBoundModifier::Maybe,
+    Trait(TraitBound {
+        modifier: Maybe,
         path: Path {
             segments: [
                 PathSegment {
                     ident: "Sized",
+                    arguments: None,
                 },
             ],
         },
@@ -181,42 +185,45 @@ fn test_fn_precedence_in_where_clause() {
 
     snapshot!(input as ItemFn, @r###"
     ItemFn {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         sig: Signature {
             ident: "f",
             generics: Generics {
                 lt_token: Some,
                 params: [
-                    GenericParam::Type(TypeParam {
+                    Type(TypeParam {
                         ident: "G",
                     }),
                 ],
                 gt_token: Some,
                 where_clause: Some(WhereClause {
                     predicates: [
-                        WherePredicate::Type(PredicateType {
+                        Type(PredicateType {
                             bounded_ty: Type::Path {
                                 path: Path {
                                     segments: [
                                         PathSegment {
                                             ident: "G",
+                                            arguments: None,
                                         },
                                     ],
                                 },
                             },
                             bounds: [
-                                TypeParamBound::Trait(TraitBound {
+                                Trait(TraitBound {
+                                    modifier: None,
                                     path: Path {
                                         segments: [
                                             PathSegment {
                                                 ident: "FnOnce",
                                                 arguments: PathArguments::Parenthesized {
-                                                    output: ReturnType::Type(
+                                                    output: Type(
                                                         Type::Path {
                                                             path: Path {
                                                                 segments: [
                                                                     PathSegment {
                                                                         ident: "i32",
+                                                                        arguments: None,
                                                                     },
                                                                 ],
                                                             },
@@ -227,11 +234,13 @@ fn test_fn_precedence_in_where_clause() {
                                         ],
                                     },
                                 }),
-                                TypeParamBound::Trait(TraitBound {
+                                Trait(TraitBound {
+                                    modifier: None,
                                     path: Path {
                                         segments: [
                                             PathSegment {
                                                 ident: "Send",
+                                                arguments: None,
                                             },
                                         ],
                                     },
@@ -241,7 +250,7 @@ fn test_fn_precedence_in_where_clause() {
                     ],
                 }),
             },
-            output: ReturnType::Default,
+            output: Default,
         },
         block: Block,
     }

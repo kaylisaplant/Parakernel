@@ -41,30 +41,6 @@ impl Clone for Arm {
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for AssocConst {
-    fn clone(&self) -> Self {
-        AssocConst {
-            ident: self.ident.clone(),
-            generics: self.generics.clone(),
-            eq_token: self.eq_token.clone(),
-            value: self.value.clone(),
-        }
-    }
-}
-#[cfg(any(feature = "derive", feature = "full"))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for AssocType {
-    fn clone(&self) -> Self {
-        AssocType {
-            ident: self.ident.clone(),
-            generics: self.generics.clone(),
-            eq_token: self.eq_token.clone(),
-            ty: self.ty.clone(),
-        }
-    }
-}
-#[cfg(any(feature = "derive", feature = "full"))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Copy for AttrStyle {}
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
@@ -81,7 +57,8 @@ impl Clone for Attribute {
             pound_token: self.pound_token.clone(),
             style: self.style.clone(),
             bracket_token: self.bracket_token.clone(),
-            meta: self.meta.clone(),
+            path: self.path.clone(),
+            tokens: self.tokens.clone(),
         }
     }
 }
@@ -98,24 +75,23 @@ impl Clone for BareFnArg {
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for BareVariadic {
-    fn clone(&self) -> Self {
-        BareVariadic {
-            attrs: self.attrs.clone(),
-            name: self.name.clone(),
-            dots: self.dots.clone(),
-            comma: self.comma.clone(),
-        }
-    }
-}
-#[cfg(any(feature = "derive", feature = "full"))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Copy for BinOp {}
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for BinOp {
     fn clone(&self) -> Self {
         *self
+    }
+}
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for Binding {
+    fn clone(&self) -> Self {
+        Binding {
+            ident: self.ident.clone(),
+            eq_token: self.eq_token.clone(),
+            ty: self.ty.clone(),
+        }
     }
 }
 #[cfg(feature = "full")]
@@ -161,7 +137,6 @@ impl Clone for Constraint {
     fn clone(&self) -> Self {
         Constraint {
             ident: self.ident.clone(),
-            generics: self.generics.clone(),
             colon_token: self.colon_token.clone(),
             bounds: self.bounds.clone(),
         }
@@ -233,6 +208,8 @@ impl Clone for Expr {
             #[cfg(feature = "full")]
             Expr::Assign(v0) => Expr::Assign(v0.clone()),
             #[cfg(feature = "full")]
+            Expr::AssignOp(v0) => Expr::AssignOp(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::Async(v0) => Expr::Async(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Await(v0) => Expr::Await(v0.clone()),
@@ -240,29 +217,29 @@ impl Clone for Expr {
             #[cfg(feature = "full")]
             Expr::Block(v0) => Expr::Block(v0.clone()),
             #[cfg(feature = "full")]
+            Expr::Box(v0) => Expr::Box(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::Break(v0) => Expr::Break(v0.clone()),
             Expr::Call(v0) => Expr::Call(v0.clone()),
             Expr::Cast(v0) => Expr::Cast(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Closure(v0) => Expr::Closure(v0.clone()),
             #[cfg(feature = "full")]
-            Expr::Const(v0) => Expr::Const(v0.clone()),
-            #[cfg(feature = "full")]
             Expr::Continue(v0) => Expr::Continue(v0.clone()),
             Expr::Field(v0) => Expr::Field(v0.clone()),
             #[cfg(feature = "full")]
             Expr::ForLoop(v0) => Expr::ForLoop(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::Group(v0) => Expr::Group(v0.clone()),
             #[cfg(feature = "full")]
             Expr::If(v0) => Expr::If(v0.clone()),
             Expr::Index(v0) => Expr::Index(v0.clone()),
             #[cfg(feature = "full")]
-            Expr::Infer(v0) => Expr::Infer(v0.clone()),
-            #[cfg(feature = "full")]
             Expr::Let(v0) => Expr::Let(v0.clone()),
             Expr::Lit(v0) => Expr::Lit(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Loop(v0) => Expr::Loop(v0.clone()),
+            #[cfg(feature = "full")]
             Expr::Macro(v0) => Expr::Macro(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Match(v0) => Expr::Match(v0.clone()),
@@ -286,6 +263,8 @@ impl Clone for Expr {
             Expr::TryBlock(v0) => Expr::TryBlock(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Tuple(v0) => Expr::Tuple(v0.clone()),
+            #[cfg(feature = "full")]
+            Expr::Type(v0) => Expr::Type(v0.clone()),
             Expr::Unary(v0) => Expr::Unary(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Unsafe(v0) => Expr::Unsafe(v0.clone()),
@@ -294,7 +273,7 @@ impl Clone for Expr {
             Expr::While(v0) => Expr::While(v0.clone()),
             #[cfg(feature = "full")]
             Expr::Yield(v0) => Expr::Yield(v0.clone()),
-            #[cfg(not(feature = "full"))]
+            #[cfg(any(syn_no_non_exhaustive, not(feature = "full")))]
             _ => unreachable!(),
         }
     }
@@ -318,6 +297,18 @@ impl Clone for ExprAssign {
             attrs: self.attrs.clone(),
             left: self.left.clone(),
             eq_token: self.eq_token.clone(),
+            right: self.right.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for ExprAssignOp {
+    fn clone(&self) -> Self {
+        ExprAssignOp {
+            attrs: self.attrs.clone(),
+            left: self.left.clone(),
+            op: self.op.clone(),
             right: self.right.clone(),
         }
     }
@@ -371,6 +362,17 @@ impl Clone for ExprBlock {
 }
 #[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for ExprBox {
+    fn clone(&self) -> Self {
+        ExprBox {
+            attrs: self.attrs.clone(),
+            box_token: self.box_token.clone(),
+            expr: self.expr.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ExprBreak {
     fn clone(&self) -> Self {
         ExprBreak {
@@ -411,8 +413,6 @@ impl Clone for ExprClosure {
     fn clone(&self) -> Self {
         ExprClosure {
             attrs: self.attrs.clone(),
-            lifetimes: self.lifetimes.clone(),
-            constness: self.constness.clone(),
             movability: self.movability.clone(),
             asyncness: self.asyncness.clone(),
             capture: self.capture.clone(),
@@ -421,17 +421,6 @@ impl Clone for ExprClosure {
             or2_token: self.or2_token.clone(),
             output: self.output.clone(),
             body: self.body.clone(),
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for ExprConst {
-    fn clone(&self) -> Self {
-        ExprConst {
-            attrs: self.attrs.clone(),
-            const_token: self.const_token.clone(),
-            block: self.block.clone(),
         }
     }
 }
@@ -473,7 +462,7 @@ impl Clone for ExprForLoop {
         }
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ExprGroup {
     fn clone(&self) -> Self {
@@ -506,16 +495,6 @@ impl Clone for ExprIndex {
             expr: self.expr.clone(),
             bracket_token: self.bracket_token.clone(),
             index: self.index.clone(),
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for ExprInfer {
-    fn clone(&self) -> Self {
-        ExprInfer {
-            attrs: self.attrs.clone(),
-            underscore_token: self.underscore_token.clone(),
         }
     }
 }
@@ -554,7 +533,7 @@ impl Clone for ExprLoop {
         }
     }
 }
-#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ExprMacro {
     fn clone(&self) -> Self {
@@ -620,9 +599,9 @@ impl Clone for ExprRange {
     fn clone(&self) -> Self {
         ExprRange {
             attrs: self.attrs.clone(),
-            start: self.start.clone(),
+            from: self.from.clone(),
             limits: self.limits.clone(),
-            end: self.end.clone(),
+            to: self.to.clone(),
         }
     }
 }
@@ -633,6 +612,7 @@ impl Clone for ExprReference {
         ExprReference {
             attrs: self.attrs.clone(),
             and_token: self.and_token.clone(),
+            raw: self.raw.clone(),
             mutability: self.mutability.clone(),
             expr: self.expr.clone(),
         }
@@ -668,7 +648,6 @@ impl Clone for ExprStruct {
     fn clone(&self) -> Self {
         ExprStruct {
             attrs: self.attrs.clone(),
-            qself: self.qself.clone(),
             path: self.path.clone(),
             brace_token: self.brace_token.clone(),
             fields: self.fields.clone(),
@@ -707,6 +686,18 @@ impl Clone for ExprTuple {
             attrs: self.attrs.clone(),
             paren_token: self.paren_token.clone(),
             elems: self.elems.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for ExprType {
+    fn clone(&self) -> Self {
+        ExprType {
+            attrs: self.attrs.clone(),
+            expr: self.expr.clone(),
+            colon_token: self.colon_token.clone(),
+            ty: self.ty.clone(),
         }
     }
 }
@@ -763,19 +754,9 @@ impl Clone for Field {
         Field {
             attrs: self.attrs.clone(),
             vis: self.vis.clone(),
-            mutability: self.mutability.clone(),
             ident: self.ident.clone(),
             colon_token: self.colon_token.clone(),
             ty: self.ty.clone(),
-        }
-    }
-}
-#[cfg(any(feature = "derive", feature = "full"))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for FieldMutability {
-    fn clone(&self) -> Self {
-        match self {
-            FieldMutability::None => FieldMutability::None,
         }
     }
 }
@@ -865,6 +846,8 @@ impl Clone for ForeignItem {
             ForeignItem::Type(v0) => ForeignItem::Type(v0.clone()),
             ForeignItem::Macro(v0) => ForeignItem::Macro(v0.clone()),
             ForeignItem::Verbatim(v0) => ForeignItem::Verbatim(v0.clone()),
+            #[cfg(syn_no_non_exhaustive)]
+            _ => unreachable!(),
         }
     }
 }
@@ -916,7 +899,6 @@ impl Clone for ForeignItemType {
             vis: self.vis.clone(),
             type_token: self.type_token.clone(),
             ident: self.ident.clone(),
-            generics: self.generics.clone(),
             semi_token: self.semi_token.clone(),
         }
     }
@@ -929,9 +911,18 @@ impl Clone for GenericArgument {
             GenericArgument::Lifetime(v0) => GenericArgument::Lifetime(v0.clone()),
             GenericArgument::Type(v0) => GenericArgument::Type(v0.clone()),
             GenericArgument::Const(v0) => GenericArgument::Const(v0.clone()),
-            GenericArgument::AssocType(v0) => GenericArgument::AssocType(v0.clone()),
-            GenericArgument::AssocConst(v0) => GenericArgument::AssocConst(v0.clone()),
+            GenericArgument::Binding(v0) => GenericArgument::Binding(v0.clone()),
             GenericArgument::Constraint(v0) => GenericArgument::Constraint(v0.clone()),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for GenericMethodArgument {
+    fn clone(&self) -> Self {
+        match self {
+            GenericMethodArgument::Type(v0) => GenericMethodArgument::Type(v0.clone()),
+            GenericMethodArgument::Const(v0) => GenericMethodArgument::Const(v0.clone()),
         }
     }
 }
@@ -940,8 +931,8 @@ impl Clone for GenericArgument {
 impl Clone for GenericParam {
     fn clone(&self) -> Self {
         match self {
-            GenericParam::Lifetime(v0) => GenericParam::Lifetime(v0.clone()),
             GenericParam::Type(v0) => GenericParam::Type(v0.clone()),
+            GenericParam::Lifetime(v0) => GenericParam::Lifetime(v0.clone()),
             GenericParam::Const(v0) => GenericParam::Const(v0.clone()),
         }
     }
@@ -964,10 +955,12 @@ impl Clone for ImplItem {
     fn clone(&self) -> Self {
         match self {
             ImplItem::Const(v0) => ImplItem::Const(v0.clone()),
-            ImplItem::Fn(v0) => ImplItem::Fn(v0.clone()),
+            ImplItem::Method(v0) => ImplItem::Method(v0.clone()),
             ImplItem::Type(v0) => ImplItem::Type(v0.clone()),
             ImplItem::Macro(v0) => ImplItem::Macro(v0.clone()),
             ImplItem::Verbatim(v0) => ImplItem::Verbatim(v0.clone()),
+            #[cfg(syn_no_non_exhaustive)]
+            _ => unreachable!(),
         }
     }
 }
@@ -981,25 +974,11 @@ impl Clone for ImplItemConst {
             defaultness: self.defaultness.clone(),
             const_token: self.const_token.clone(),
             ident: self.ident.clone(),
-            generics: self.generics.clone(),
             colon_token: self.colon_token.clone(),
             ty: self.ty.clone(),
             eq_token: self.eq_token.clone(),
             expr: self.expr.clone(),
             semi_token: self.semi_token.clone(),
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for ImplItemFn {
-    fn clone(&self) -> Self {
-        ImplItemFn {
-            attrs: self.attrs.clone(),
-            vis: self.vis.clone(),
-            defaultness: self.defaultness.clone(),
-            sig: self.sig.clone(),
-            block: self.block.clone(),
         }
     }
 }
@@ -1011,6 +990,19 @@ impl Clone for ImplItemMacro {
             attrs: self.attrs.clone(),
             mac: self.mac.clone(),
             semi_token: self.semi_token.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for ImplItemMethod {
+    fn clone(&self) -> Self {
+        ImplItemMethod {
+            attrs: self.attrs.clone(),
+            vis: self.vis.clone(),
+            defaultness: self.defaultness.clone(),
+            sig: self.sig.clone(),
+            block: self.block.clone(),
         }
     }
 }
@@ -1029,13 +1021,6 @@ impl Clone for ImplItemType {
             ty: self.ty.clone(),
             semi_token: self.semi_token.clone(),
         }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for ImplRestriction {
-    fn clone(&self) -> Self {
-        match *self {}
     }
 }
 #[cfg(any(feature = "derive", feature = "full"))]
@@ -1060,6 +1045,7 @@ impl Clone for Item {
             Item::ForeignMod(v0) => Item::ForeignMod(v0.clone()),
             Item::Impl(v0) => Item::Impl(v0.clone()),
             Item::Macro(v0) => Item::Macro(v0.clone()),
+            Item::Macro2(v0) => Item::Macro2(v0.clone()),
             Item::Mod(v0) => Item::Mod(v0.clone()),
             Item::Static(v0) => Item::Static(v0.clone()),
             Item::Struct(v0) => Item::Struct(v0.clone()),
@@ -1069,6 +1055,8 @@ impl Clone for Item {
             Item::Union(v0) => Item::Union(v0.clone()),
             Item::Use(v0) => Item::Use(v0.clone()),
             Item::Verbatim(v0) => Item::Verbatim(v0.clone()),
+            #[cfg(syn_no_non_exhaustive)]
+            _ => unreachable!(),
         }
     }
 }
@@ -1081,7 +1069,6 @@ impl Clone for ItemConst {
             vis: self.vis.clone(),
             const_token: self.const_token.clone(),
             ident: self.ident.clone(),
-            generics: self.generics.clone(),
             colon_token: self.colon_token.clone(),
             ty: self.ty.clone(),
             eq_token: self.eq_token.clone(),
@@ -1138,7 +1125,6 @@ impl Clone for ItemForeignMod {
     fn clone(&self) -> Self {
         ItemForeignMod {
             attrs: self.attrs.clone(),
-            unsafety: self.unsafety.clone(),
             abi: self.abi.clone(),
             brace_token: self.brace_token.clone(),
             items: self.items.clone(),
@@ -1176,12 +1162,24 @@ impl Clone for ItemMacro {
 }
 #[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for ItemMacro2 {
+    fn clone(&self) -> Self {
+        ItemMacro2 {
+            attrs: self.attrs.clone(),
+            vis: self.vis.clone(),
+            macro_token: self.macro_token.clone(),
+            ident: self.ident.clone(),
+            rules: self.rules.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for ItemMod {
     fn clone(&self) -> Self {
         ItemMod {
             attrs: self.attrs.clone(),
             vis: self.vis.clone(),
-            unsafety: self.unsafety.clone(),
             mod_token: self.mod_token.clone(),
             ident: self.ident.clone(),
             content: self.content.clone(),
@@ -1231,7 +1229,6 @@ impl Clone for ItemTrait {
             vis: self.vis.clone(),
             unsafety: self.unsafety.clone(),
             auto_token: self.auto_token.clone(),
-            restriction: self.restriction.clone(),
             trait_token: self.trait_token.clone(),
             ident: self.ident.clone(),
             generics: self.generics.clone(),
@@ -1314,9 +1311,9 @@ impl Clone for Label {
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for LifetimeParam {
+impl Clone for LifetimeDef {
     fn clone(&self) -> Self {
-        LifetimeParam {
+        LifetimeDef {
             attrs: self.attrs.clone(),
             lifetime: self.lifetime.clone(),
             colon_token: self.colon_token.clone(),
@@ -1358,17 +1355,6 @@ impl Clone for Local {
             pat: self.pat.clone(),
             init: self.init.clone(),
             semi_token: self.semi_token.clone(),
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for LocalInit {
-    fn clone(&self) -> Self {
-        LocalInit {
-            eq_token: self.eq_token.clone(),
-            expr: self.expr.clone(),
-            diverge: self.diverge.clone(),
         }
     }
 }
@@ -1422,8 +1408,8 @@ impl Clone for MetaList {
     fn clone(&self) -> Self {
         MetaList {
             path: self.path.clone(),
-            delimiter: self.delimiter.clone(),
-            tokens: self.tokens.clone(),
+            paren_token: self.paren_token.clone(),
+            nested: self.nested.clone(),
         }
     }
 }
@@ -1434,7 +1420,29 @@ impl Clone for MetaNameValue {
         MetaNameValue {
             path: self.path.clone(),
             eq_token: self.eq_token.clone(),
-            value: self.value.clone(),
+            lit: self.lit.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for MethodTurbofish {
+    fn clone(&self) -> Self {
+        MethodTurbofish {
+            colon2_token: self.colon2_token.clone(),
+            lt_token: self.lt_token.clone(),
+            args: self.args.clone(),
+            gt_token: self.gt_token.clone(),
+        }
+    }
+}
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for NestedMeta {
+    fn clone(&self) -> Self {
+        match self {
+            NestedMeta::Meta(v0) => NestedMeta::Meta(v0.clone()),
+            NestedMeta::Lit(v0) => NestedMeta::Lit(v0.clone()),
         }
     }
 }
@@ -1454,12 +1462,11 @@ impl Clone for ParenthesizedGenericArguments {
 impl Clone for Pat {
     fn clone(&self) -> Self {
         match self {
-            Pat::Const(v0) => Pat::Const(v0.clone()),
+            Pat::Box(v0) => Pat::Box(v0.clone()),
             Pat::Ident(v0) => Pat::Ident(v0.clone()),
             Pat::Lit(v0) => Pat::Lit(v0.clone()),
             Pat::Macro(v0) => Pat::Macro(v0.clone()),
             Pat::Or(v0) => Pat::Or(v0.clone()),
-            Pat::Paren(v0) => Pat::Paren(v0.clone()),
             Pat::Path(v0) => Pat::Path(v0.clone()),
             Pat::Range(v0) => Pat::Range(v0.clone()),
             Pat::Reference(v0) => Pat::Reference(v0.clone()),
@@ -1471,6 +1478,19 @@ impl Clone for Pat {
             Pat::Type(v0) => Pat::Type(v0.clone()),
             Pat::Verbatim(v0) => Pat::Verbatim(v0.clone()),
             Pat::Wild(v0) => Pat::Wild(v0.clone()),
+            #[cfg(syn_no_non_exhaustive)]
+            _ => unreachable!(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for PatBox {
+    fn clone(&self) -> Self {
+        PatBox {
+            attrs: self.attrs.clone(),
+            box_token: self.box_token.clone(),
+            pat: self.pat.clone(),
         }
     }
 }
@@ -1489,6 +1509,26 @@ impl Clone for PatIdent {
 }
 #[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for PatLit {
+    fn clone(&self) -> Self {
+        PatLit {
+            attrs: self.attrs.clone(),
+            expr: self.expr.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for PatMacro {
+    fn clone(&self) -> Self {
+        PatMacro {
+            attrs: self.attrs.clone(),
+            mac: self.mac.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for PatOr {
     fn clone(&self) -> Self {
         PatOr {
@@ -1500,12 +1540,24 @@ impl Clone for PatOr {
 }
 #[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for PatParen {
+impl Clone for PatPath {
     fn clone(&self) -> Self {
-        PatParen {
+        PatPath {
             attrs: self.attrs.clone(),
-            paren_token: self.paren_token.clone(),
-            pat: self.pat.clone(),
+            qself: self.qself.clone(),
+            path: self.path.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for PatRange {
+    fn clone(&self) -> Self {
+        PatRange {
+            attrs: self.attrs.clone(),
+            lo: self.lo.clone(),
+            limits: self.limits.clone(),
+            hi: self.hi.clone(),
         }
     }
 }
@@ -1548,11 +1600,10 @@ impl Clone for PatStruct {
     fn clone(&self) -> Self {
         PatStruct {
             attrs: self.attrs.clone(),
-            qself: self.qself.clone(),
             path: self.path.clone(),
             brace_token: self.brace_token.clone(),
             fields: self.fields.clone(),
-            rest: self.rest.clone(),
+            dot2_token: self.dot2_token.clone(),
         }
     }
 }
@@ -1573,10 +1624,8 @@ impl Clone for PatTupleStruct {
     fn clone(&self) -> Self {
         PatTupleStruct {
             attrs: self.attrs.clone(),
-            qself: self.qself.clone(),
             path: self.path.clone(),
-            paren_token: self.paren_token.clone(),
-            elems: self.elems.clone(),
+            pat: self.pat.clone(),
         }
     }
 }
@@ -1637,6 +1686,17 @@ impl Clone for PathSegment {
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for PredicateEq {
+    fn clone(&self) -> Self {
+        PredicateEq {
+            lhs_ty: self.lhs_ty.clone(),
+            eq_token: self.eq_token.clone(),
+            rhs_ty: self.rhs_ty.clone(),
+        }
+    }
+}
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for PredicateLifetime {
     fn clone(&self) -> Self {
         PredicateLifetime {
@@ -1690,8 +1750,6 @@ impl Clone for Receiver {
             reference: self.reference.clone(),
             mutability: self.mutability.clone(),
             self_token: self.self_token.clone(),
-            colon_token: self.colon_token.clone(),
-            ty: self.ty.clone(),
         }
     }
 }
@@ -1726,34 +1784,13 @@ impl Clone for Signature {
 }
 #[cfg(feature = "full")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for StaticMutability {
-    fn clone(&self) -> Self {
-        match self {
-            StaticMutability::Mut(v0) => StaticMutability::Mut(v0.clone()),
-            StaticMutability::None => StaticMutability::None,
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for Stmt {
     fn clone(&self) -> Self {
         match self {
             Stmt::Local(v0) => Stmt::Local(v0.clone()),
             Stmt::Item(v0) => Stmt::Item(v0.clone()),
-            Stmt::Expr(v0, v1) => Stmt::Expr(v0.clone(), v1.clone()),
-            Stmt::Macro(v0) => Stmt::Macro(v0.clone()),
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for StmtMacro {
-    fn clone(&self) -> Self {
-        StmtMacro {
-            attrs: self.attrs.clone(),
-            mac: self.mac.clone(),
-            semi_token: self.semi_token.clone(),
+            Stmt::Expr(v0) => Stmt::Expr(v0.clone()),
+            Stmt::Semi(v0, v1) => Stmt::Semi(v0.clone(), v1.clone()),
         }
     }
 }
@@ -1785,10 +1822,12 @@ impl Clone for TraitItem {
     fn clone(&self) -> Self {
         match self {
             TraitItem::Const(v0) => TraitItem::Const(v0.clone()),
-            TraitItem::Fn(v0) => TraitItem::Fn(v0.clone()),
+            TraitItem::Method(v0) => TraitItem::Method(v0.clone()),
             TraitItem::Type(v0) => TraitItem::Type(v0.clone()),
             TraitItem::Macro(v0) => TraitItem::Macro(v0.clone()),
             TraitItem::Verbatim(v0) => TraitItem::Verbatim(v0.clone()),
+            #[cfg(syn_no_non_exhaustive)]
+            _ => unreachable!(),
         }
     }
 }
@@ -1800,21 +1839,8 @@ impl Clone for TraitItemConst {
             attrs: self.attrs.clone(),
             const_token: self.const_token.clone(),
             ident: self.ident.clone(),
-            generics: self.generics.clone(),
             colon_token: self.colon_token.clone(),
             ty: self.ty.clone(),
-            default: self.default.clone(),
-            semi_token: self.semi_token.clone(),
-        }
-    }
-}
-#[cfg(feature = "full")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
-impl Clone for TraitItemFn {
-    fn clone(&self) -> Self {
-        TraitItemFn {
-            attrs: self.attrs.clone(),
-            sig: self.sig.clone(),
             default: self.default.clone(),
             semi_token: self.semi_token.clone(),
         }
@@ -1827,6 +1853,18 @@ impl Clone for TraitItemMacro {
         TraitItemMacro {
             attrs: self.attrs.clone(),
             mac: self.mac.clone(),
+            semi_token: self.semi_token.clone(),
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for TraitItemMethod {
+    fn clone(&self) -> Self {
+        TraitItemMethod {
+            attrs: self.attrs.clone(),
+            sig: self.sig.clone(),
+            default: self.default.clone(),
             semi_token: self.semi_token.clone(),
         }
     }
@@ -1867,6 +1905,8 @@ impl Clone for Type {
             Type::TraitObject(v0) => Type::TraitObject(v0.clone()),
             Type::Tuple(v0) => Type::Tuple(v0.clone()),
             Type::Verbatim(v0) => Type::Verbatim(v0.clone()),
+            #[cfg(syn_no_non_exhaustive)]
+            _ => unreachable!(),
         }
     }
 }
@@ -1964,7 +2004,6 @@ impl Clone for TypeParamBound {
         match self {
             TypeParamBound::Trait(v0) => TypeParamBound::Trait(v0.clone()),
             TypeParamBound::Lifetime(v0) => TypeParamBound::Lifetime(v0.clone()),
-            TypeParamBound::Verbatim(v0) => TypeParamBound::Verbatim(v0.clone()),
         }
     }
 }
@@ -2115,15 +2154,13 @@ impl Clone for UseTree {
         }
     }
 }
-#[cfg(feature = "full")]
+#[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
 impl Clone for Variadic {
     fn clone(&self) -> Self {
         Variadic {
             attrs: self.attrs.clone(),
-            pat: self.pat.clone(),
             dots: self.dots.clone(),
-            comma: self.comma.clone(),
         }
     }
 }
@@ -2136,6 +2173,24 @@ impl Clone for Variant {
             ident: self.ident.clone(),
             fields: self.fields.clone(),
             discriminant: self.discriminant.clone(),
+        }
+    }
+}
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for VisCrate {
+    fn clone(&self) -> Self {
+        VisCrate {
+            crate_token: self.crate_token.clone(),
+        }
+    }
+}
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "clone-impls")))]
+impl Clone for VisPublic {
+    fn clone(&self) -> Self {
+        VisPublic {
+            pub_token: self.pub_token.clone(),
         }
     }
 }
@@ -2157,6 +2212,7 @@ impl Clone for Visibility {
     fn clone(&self) -> Self {
         match self {
             Visibility::Public(v0) => Visibility::Public(v0.clone()),
+            Visibility::Crate(v0) => Visibility::Crate(v0.clone()),
             Visibility::Restricted(v0) => Visibility::Restricted(v0.clone()),
             Visibility::Inherited => Visibility::Inherited,
         }
@@ -2177,8 +2233,9 @@ impl Clone for WhereClause {
 impl Clone for WherePredicate {
     fn clone(&self) -> Self {
         match self {
-            WherePredicate::Lifetime(v0) => WherePredicate::Lifetime(v0.clone()),
             WherePredicate::Type(v0) => WherePredicate::Type(v0.clone()),
+            WherePredicate::Lifetime(v0) => WherePredicate::Lifetime(v0.clone()),
+            WherePredicate::Eq(v0) => WherePredicate::Eq(v0.clone()),
         }
     }
 }

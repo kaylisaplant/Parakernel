@@ -1,7 +1,8 @@
 #![allow(
     clippy::assertions_on_result_states,
     clippy::items_after_statements,
-    clippy::non_ascii_literal
+    clippy::non_ascii_literal,
+    clippy::octal_escapes
 )]
 
 use proc_macro2::{Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
@@ -114,6 +115,10 @@ fn literal_string() {
     assert_eq!(Literal::string("foo").to_string(), "\"foo\"");
     assert_eq!(Literal::string("\"").to_string(), "\"\\\"\"");
     assert_eq!(Literal::string("didn't").to_string(), "\"didn't\"");
+    assert_eq!(
+        Literal::string("a\00b\07c\08d\0e\0").to_string(),
+        "\"a\\x000b\\x007c\\08d\\0e\\0\"",
+    );
 }
 
 #[test]
@@ -146,6 +151,10 @@ fn literal_byte_string() {
     assert_eq!(
         Literal::byte_string(b"\0\t\n\r\"\\2\x10").to_string(),
         "b\"\\0\\t\\n\\r\\\"\\\\2\\x10\"",
+    );
+    assert_eq!(
+        Literal::byte_string(b"a\00b\07c\08d\0e\0").to_string(),
+        "b\"a\\x000b\\x007c\\08d\\0e\\0\"",
     );
 }
 

@@ -66,7 +66,7 @@
 //!             struct_token: input.parse()?,
 //!             ident: input.parse()?,
 //!             brace_token: braced!(content in input),
-//!             fields: content.parse_terminated(Field::parse_named, Token![,])?,
+//!             fields: content.parse_terminated(Field::parse_named)?,
 //!         })
 //!     }
 //! }
@@ -84,7 +84,7 @@
 //!     let input = parse_macro_input!(tokens as Item);
 //!
 //!     /* ... */
-//! #   TokenStream::new()
+//! #   "".parse().unwrap()
 //! }
 //! ```
 //!
@@ -178,6 +178,10 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! ---
+//!
+//! *This module is available only if Syn is built with the `"parsing"` feature.*
 
 #[path = "discouraged.rs"]
 pub mod discouraged;
@@ -681,7 +685,7 @@ impl<'a> ParseBuffer<'a> {
     ///             struct_token: input.parse()?,
     ///             ident: input.parse()?,
     ///             paren_token: parenthesized!(content in input),
-    ///             fields: content.parse_terminated(Type::parse, Token![,])?,
+    ///             fields: content.parse_terminated(Type::parse)?,
     ///             semi_token: input.parse()?,
     ///         })
     ///     }
@@ -692,63 +696,10 @@ impl<'a> ParseBuffer<'a> {
     /// # };
     /// # syn::parse2::<TupleStruct>(input).unwrap();
     /// ```
-    ///
-    /// # See also
-    ///
-    /// If your separator is anything more complicated than an invocation of the
-    /// `Token!` macro, this method won't be applicable and you can instead
-    /// directly use `Punctuated`'s parser functions: [`parse_terminated`],
-    /// [`parse_separated_nonempty`] etc.
-    ///
-    /// [`parse_terminated`]: Punctuated::parse_terminated
-    /// [`parse_separated_nonempty`]: Punctuated::parse_separated_nonempty
-    ///
-    /// ```
-    /// use syn::{custom_keyword, Expr, Result, Token};
-    /// use syn::parse::{Parse, ParseStream};
-    /// use syn::punctuated::Punctuated;
-    ///
-    /// mod kw {
-    ///     syn::custom_keyword!(fin);
-    /// }
-    ///
-    /// struct Fin(kw::fin, Token![;]);
-    ///
-    /// impl Parse for Fin {
-    ///     fn parse(input: ParseStream) -> Result<Self> {
-    ///         Ok(Self(input.parse()?, input.parse()?))
-    ///     }
-    /// }
-    ///
-    /// struct Thing {
-    ///     steps: Punctuated<Expr, Fin>,
-    /// }
-    ///
-    /// impl Parse for Thing {
-    ///     fn parse(input: ParseStream) -> Result<Self> {
-    /// # if true {
-    ///         Ok(Thing {
-    ///             steps: Punctuated::parse_terminated(input)?,
-    ///         })
-    /// # } else {
-    ///         // or equivalently, this means the same thing:
-    /// #       Ok(Thing {
-    ///             steps: input.call(Punctuated::parse_terminated)?,
-    /// #       })
-    /// # }
-    ///     }
-    /// }
-    /// ```
-    pub fn parse_terminated<T, P>(
+    pub fn parse_terminated<T, P: Parse>(
         &self,
         parser: fn(ParseStream) -> Result<T>,
-        separator: P,
-    ) -> Result<Punctuated<T, P::Token>>
-    where
-        P: Peek,
-        P::Token: Parse,
-    {
-        let _ = separator;
+    ) -> Result<Punctuated<T, P>> {
         Punctuated::parse_terminated_with(self, parser)
     }
 
@@ -799,7 +750,7 @@ impl<'a> ParseBuffer<'a> {
     /// # Example
     ///
     /// ```
-    /// use syn::{ConstParam, Ident, Lifetime, LifetimeParam, Result, Token, TypeParam};
+    /// use syn::{ConstParam, Ident, Lifetime, LifetimeDef, Result, Token, TypeParam};
     /// use syn::parse::{Parse, ParseStream};
     ///
     /// // A generic parameter, a single one of the comma-separated elements inside
@@ -815,7 +766,7 @@ impl<'a> ParseBuffer<'a> {
     /// //       |          ^
     /// enum GenericParam {
     ///     Type(TypeParam),
-    ///     Lifetime(LifetimeParam),
+    ///     Lifetime(LifetimeDef),
     ///     Const(ConstParam),
     /// }
     ///
@@ -1150,8 +1101,10 @@ impl Parse for TokenTree {
 impl Parse for Group {
     fn parse(input: ParseStream) -> Result<Self> {
         input.step(|cursor| {
-            if let Some((group, rest)) = cursor.any_group_token() {
-                if group.delimiter() != Delimiter::None {
+            for delim in &[Delimiter::Parenthesis, Delimiter::Brace, Delimiter::Bracket] {
+                if let Some((inside, span, rest)) = cursor.group(*delim) {
+                    let mut group = Group::new(*delim, inside.token_stream());
+                    group.set_span(span);
                     return Ok((group, rest));
                 }
             }
@@ -1185,6 +1138,8 @@ impl Parse for Literal {
 /// Refer to the [module documentation] for details about parsing in Syn.
 ///
 /// [module documentation]: self
+///
+/// *This trait is available only if Syn is built with the `"parsing"` feature.*
 pub trait Parser: Sized {
     type Output;
 
@@ -1198,11 +1153,13 @@ pub trait Parser: Sized {
     ///
     /// This function will check that the input is fully parsed. If there are
     /// any unparsed tokens at the end of the stream, an error is returned.
+    ///
+    /// *This method is available only if Syn is built with both the `"parsing"` and
+    /// `"proc-macro"` features.*
     #[cfg(all(
         not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "wasi"))),
         feature = "proc-macro"
     ))]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "proc-macro")))]
     fn parse(self, tokens: proc_macro::TokenStream) -> Result<Self::Output> {
         self.parse2(proc_macro2::TokenStream::from(tokens))
     }
@@ -1226,6 +1183,13 @@ pub trait Parser: Sized {
     fn __parse_scoped(self, scope: Span, tokens: TokenStream) -> Result<Self::Output> {
         let _ = scope;
         self.parse2(tokens)
+    }
+
+    // Not public API.
+    #[doc(hidden)]
+    #[cfg(any(feature = "full", feature = "derive"))]
+    fn __parse_stream(self, input: ParseStream) -> Result<Self::Output> {
+        input.parse().and_then(|tokens| self.parse2(tokens))
     }
 }
 
@@ -1268,11 +1232,21 @@ where
             Ok(node)
         }
     }
+
+    #[cfg(any(feature = "full", feature = "derive"))]
+    fn __parse_stream(self, input: ParseStream) -> Result<Self::Output> {
+        self(input)
+    }
 }
 
 #[cfg(any(feature = "full", feature = "derive"))]
 pub(crate) fn parse_scoped<F: Parser>(f: F, scope: Span, tokens: TokenStream) -> Result<F::Output> {
     f.__parse_scoped(scope, tokens)
+}
+
+#[cfg(any(feature = "full", feature = "derive"))]
+pub(crate) fn parse_stream<F: Parser>(f: F, input: ParseStream) -> Result<F::Output> {
+    f.__parse_stream(input)
 }
 
 /// An empty syntax tree node that consumes no tokens when parsed.
@@ -1294,7 +1268,7 @@ pub(crate) fn parse_scoped<F: Parser>(f: F, scope: Span, tokens: TokenStream) ->
 ///     parse_macro_input!(args as Nothing);
 ///
 ///     /* ... */
-/// #   TokenStream::new()
+/// #   "".parse().unwrap()
 /// }
 /// ```
 ///

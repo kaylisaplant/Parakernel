@@ -1,9 +1,4 @@
-#![allow(
-    clippy::assertions_on_result_states,
-    clippy::manual_let_else,
-    clippy::too_many_lines,
-    clippy::uninlined_format_args
-)]
+#![allow(clippy::assertions_on_result_states, clippy::too_many_lines)]
 
 #[macro_use]
 mod macros;
@@ -19,11 +14,11 @@ fn test_unit() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "Unit",
         generics: Generics,
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -44,18 +39,16 @@ fn test_struct() {
     DeriveInput {
         attrs: [
             Attribute {
-                style: AttrStyle::Outer,
-                meta: Meta::List {
-                    path: Path {
-                        segments: [
-                            PathSegment {
-                                ident: "derive",
-                            },
-                        ],
-                    },
-                    delimiter: MacroDelimiter::Paren,
-                    tokens: TokenStream(`Debug , Clone`),
+                style: Outer,
+                path: Path {
+                    segments: [
+                        PathSegment {
+                            ident: "derive",
+                            arguments: None,
+                        },
+                    ],
                 },
+                tokens: TokenStream(`(Debug , Clone)`),
             },
         ],
         vis: Visibility::Public,
@@ -73,6 +66,7 @@ fn test_struct() {
                                 segments: [
                                     PathSegment {
                                         ident: "Ident",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -89,11 +83,12 @@ fn test_struct() {
                                         ident: "Vec",
                                         arguments: PathArguments::AngleBracketed {
                                             args: [
-                                                GenericArgument::Type(Type::Path {
+                                                Type(Type::Path {
                                                     path: Path {
                                                         segments: [
                                                             PathSegment {
                                                                 ident: "Attribute",
+                                                                arguments: None,
                                                             },
                                                         ],
                                                     },
@@ -111,17 +106,34 @@ fn test_struct() {
     }
     "###);
 
-    snapshot!(&input.attrs[0].meta, @r###"
+    snapshot!(input.attrs[0].parse_meta().unwrap(), @r###"
     Meta::List {
         path: Path {
             segments: [
                 PathSegment {
                     ident: "derive",
+                    arguments: None,
                 },
             ],
         },
-        delimiter: MacroDelimiter::Paren,
-        tokens: TokenStream(`Debug , Clone`),
+        nested: [
+            Meta(Path(Path {
+                segments: [
+                    PathSegment {
+                        ident: "Debug",
+                        arguments: None,
+                    },
+                ],
+            })),
+            Meta(Path(Path {
+                segments: [
+                    PathSegment {
+                        ident: "Clone",
+                        arguments: None,
+                    },
+                ],
+            })),
+        ],
     }
     "###);
 }
@@ -137,12 +149,12 @@ fn test_union() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "MaybeUninit",
         generics: Generics {
             lt_token: Some,
             params: [
-                GenericParam::Type(TypeParam {
+                Type(TypeParam {
                     ident: "T",
                 }),
             ],
@@ -152,13 +164,13 @@ fn test_union() {
             fields: FieldsNamed {
                 named: [
                     Field {
-                        vis: Visibility::Inherited,
+                        vis: Inherited,
                         ident: Some("uninit"),
                         colon_token: Some,
                         ty: Type::Tuple,
                     },
                     Field {
-                        vis: Visibility::Inherited,
+                        vis: Inherited,
                         ident: Some("value"),
                         colon_token: Some,
                         ty: Type::Path {
@@ -166,6 +178,7 @@ fn test_union() {
                                 segments: [
                                     PathSegment {
                                         ident: "T",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -199,29 +212,28 @@ fn test_enum() {
     DeriveInput {
         attrs: [
             Attribute {
-                style: AttrStyle::Outer,
-                meta: Meta::NameValue {
-                    path: Path {
-                        segments: [
-                            PathSegment {
-                                ident: "doc",
-                            },
-                        ],
-                    },
-                    value: Expr::Lit {
-                        lit: " See the std::result module documentation for details.",
-                    },
-                },
-            },
-            Attribute {
-                style: AttrStyle::Outer,
-                meta: Meta::Path {
+                style: Outer,
+                path: Path {
                     segments: [
                         PathSegment {
-                            ident: "must_use",
+                            ident: "doc",
+                            arguments: None,
                         },
                     ],
                 },
+                tokens: TokenStream(`= r" See the std::result module documentation for details."`),
+            },
+            Attribute {
+                style: Outer,
+                path: Path {
+                    segments: [
+                        PathSegment {
+                            ident: "must_use",
+                            arguments: None,
+                        },
+                    ],
+                },
+                tokens: TokenStream(``),
             },
         ],
         vis: Visibility::Public,
@@ -229,10 +241,10 @@ fn test_enum() {
         generics: Generics {
             lt_token: Some,
             params: [
-                GenericParam::Type(TypeParam {
+                Type(TypeParam {
                     ident: "T",
                 }),
-                GenericParam::Type(TypeParam {
+                Type(TypeParam {
                     ident: "E",
                 }),
             ],
@@ -245,12 +257,13 @@ fn test_enum() {
                     fields: Fields::Unnamed {
                         unnamed: [
                             Field {
-                                vis: Visibility::Inherited,
+                                vis: Inherited,
                                 ty: Type::Path {
                                     path: Path {
                                         segments: [
                                             PathSegment {
                                                 ident: "T",
+                                                arguments: None,
                                             },
                                         ],
                                     },
@@ -264,12 +277,13 @@ fn test_enum() {
                     fields: Fields::Unnamed {
                         unnamed: [
                             Field {
-                                vis: Visibility::Inherited,
+                                vis: Inherited,
                                 ty: Type::Path {
                                     path: Path {
                                         segments: [
                                             PathSegment {
                                                 ident: "E",
+                                                arguments: None,
                                             },
                                         ],
                                     },
@@ -280,14 +294,14 @@ fn test_enum() {
                 },
                 Variant {
                     ident: "Surprise",
-                    fields: Fields::Unit,
+                    fields: Unit,
                     discriminant: Some(Expr::Lit {
                         lit: 0isize,
                     }),
                 },
                 Variant {
                     ident: "ProcMacroHack",
-                    fields: Fields::Unit,
+                    fields: Unit,
                     discriminant: Some(Expr::Field {
                         base: Expr::Tuple {
                             elems: [
@@ -299,7 +313,7 @@ fn test_enum() {
                                 },
                             ],
                         },
-                        member: Member::Unnamed(Index {
+                        member: Unnamed(Index {
                             index: 0,
                         }),
                     }),
@@ -309,7 +323,11 @@ fn test_enum() {
     }
     "###);
 
-    let meta_items: Vec<_> = input.attrs.into_iter().map(|attr| attr.meta).collect();
+    let meta_items: Vec<_> = input
+        .attrs
+        .into_iter()
+        .map(|attr| attr.parse_meta().unwrap())
+        .collect();
 
     snapshot!(meta_items, @r###"
     [
@@ -318,22 +336,64 @@ fn test_enum() {
                 segments: [
                     PathSegment {
                         ident: "doc",
+                        arguments: None,
                     },
                 ],
             },
-            value: Expr::Lit {
-                lit: " See the std::result module documentation for details.",
-            },
+            lit: " See the std::result module documentation for details.",
         },
-        Meta::Path {
+        Path(Path {
             segments: [
                 PathSegment {
                     ident: "must_use",
+                    arguments: None,
                 },
             ],
-        },
+        }),
     ]
     "###);
+}
+
+#[test]
+fn test_attr_with_path() {
+    let input = quote! {
+        #[::attr_args::identity
+            fn main() { assert_eq!(foo(), "Hello, world!"); }]
+        struct Dummy;
+    };
+
+    snapshot!(input as DeriveInput, @r###"
+    DeriveInput {
+        attrs: [
+            Attribute {
+                style: Outer,
+                path: Path {
+                    leading_colon: Some,
+                    segments: [
+                        PathSegment {
+                            ident: "attr_args",
+                            arguments: None,
+                        },
+                        PathSegment {
+                            ident: "identity",
+                            arguments: None,
+                        },
+                    ],
+                },
+                tokens: TokenStream(`fn main () { assert_eq ! (foo () , "Hello, world!") ; }`),
+            },
+        ],
+        vis: Inherited,
+        ident: "Dummy",
+        generics: Generics,
+        data: Data::Struct {
+            fields: Unit,
+            semi_token: Some,
+        },
+    }
+    "###);
+
+    assert!(input.attrs[0].parse_meta().is_err());
 }
 
 #[test]
@@ -343,7 +403,33 @@ fn test_attr_with_non_mod_style_path() {
         struct S;
     };
 
-    syn::parse2::<DeriveInput>(input).unwrap_err();
+    snapshot!(input as DeriveInput, @r###"
+    DeriveInput {
+        attrs: [
+            Attribute {
+                style: Outer,
+                path: Path {
+                    segments: [
+                        PathSegment {
+                            ident: "inert",
+                            arguments: None,
+                        },
+                    ],
+                },
+                tokens: TokenStream(`< T >`),
+            },
+        ],
+        vis: Inherited,
+        ident: "S",
+        generics: Generics,
+        data: Data::Struct {
+            fields: Unit,
+            semi_token: Some,
+        },
+    }
+    "###);
+
+    assert!(input.attrs[0].parse_meta().is_err());
 }
 
 #[test]
@@ -357,40 +443,45 @@ fn test_attr_with_mod_style_path_with_self() {
     DeriveInput {
         attrs: [
             Attribute {
-                style: AttrStyle::Outer,
-                meta: Meta::Path {
+                style: Outer,
+                path: Path {
                     segments: [
                         PathSegment {
                             ident: "foo",
+                            arguments: None,
                         },
                         PathSegment {
                             ident: "self",
+                            arguments: None,
                         },
                     ],
                 },
+                tokens: TokenStream(``),
             },
         ],
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "S",
         generics: Generics,
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
     "###);
 
-    snapshot!(&input.attrs[0].meta, @r###"
-    Meta::Path {
+    snapshot!(input.attrs[0].parse_meta().unwrap(), @r###"
+    Path(Path {
         segments: [
             PathSegment {
                 ident: "foo",
+                arguments: None,
             },
             PathSegment {
                 ident: "self",
+                arguments: None,
             },
         ],
-    }
+    })
     "###);
 }
 
@@ -409,6 +500,7 @@ fn test_pub_restricted() {
                 segments: [
                     PathSegment {
                         ident: "m",
+                        arguments: None,
                     },
                 ],
             },
@@ -425,9 +517,11 @@ fn test_pub_restricted() {
                                 segments: [
                                     PathSegment {
                                         ident: "m",
+                                        arguments: None,
                                     },
                                     PathSegment {
                                         ident: "n",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -437,6 +531,7 @@ fn test_pub_restricted() {
                                 segments: [
                                     PathSegment {
                                         ident: "u8",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -444,6 +539,25 @@ fn test_pub_restricted() {
                     },
                 ],
             },
+            semi_token: Some,
+        },
+    }
+    "###);
+}
+
+#[test]
+fn test_vis_crate() {
+    let input = quote! {
+        crate struct S;
+    };
+
+    snapshot!(input as DeriveInput, @r###"
+    DeriveInput {
+        vis: Visibility::Crate,
+        ident: "S",
+        generics: Generics,
+        data: Data::Struct {
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -463,6 +577,7 @@ fn test_pub_restricted_crate() {
                 segments: [
                     PathSegment {
                         ident: "crate",
+                        arguments: None,
                     },
                 ],
             },
@@ -470,7 +585,7 @@ fn test_pub_restricted_crate() {
         ident: "S",
         generics: Generics,
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -490,6 +605,7 @@ fn test_pub_restricted_super() {
                 segments: [
                     PathSegment {
                         ident: "super",
+                        arguments: None,
                     },
                 ],
             },
@@ -497,7 +613,7 @@ fn test_pub_restricted_super() {
         ident: "S",
         generics: Generics,
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -518,6 +634,7 @@ fn test_pub_restricted_in_super() {
                 segments: [
                     PathSegment {
                         ident: "super",
+                        arguments: None,
                     },
                 ],
             },
@@ -525,7 +642,7 @@ fn test_pub_restricted_in_super() {
         ident: "S",
         generics: Generics,
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -540,11 +657,11 @@ fn test_fields_on_unit_struct() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "S",
         generics: Generics,
         data: Data::Struct {
-            fields: Fields::Unit,
+            fields: Unit,
             semi_token: Some,
         },
     }
@@ -569,14 +686,14 @@ fn test_fields_on_named_struct() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "S",
         generics: Generics,
         data: Data::Struct {
             fields: Fields::Named {
                 named: [
                     Field {
-                        vis: Visibility::Inherited,
+                        vis: Inherited,
                         ident: Some("foo"),
                         colon_token: Some,
                         ty: Type::Path {
@@ -584,6 +701,7 @@ fn test_fields_on_named_struct() {
                                 segments: [
                                     PathSegment {
                                         ident: "i32",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -598,6 +716,7 @@ fn test_fields_on_named_struct() {
                                 segments: [
                                     PathSegment {
                                         ident: "String",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -617,7 +736,7 @@ fn test_fields_on_named_struct() {
     snapshot!(data.fields.into_iter().collect::<Vec<_>>(), @r###"
     [
         Field {
-            vis: Visibility::Inherited,
+            vis: Inherited,
             ident: Some("foo"),
             colon_token: Some,
             ty: Type::Path {
@@ -625,6 +744,7 @@ fn test_fields_on_named_struct() {
                     segments: [
                         PathSegment {
                             ident: "i32",
+                            arguments: None,
                         },
                     ],
                 },
@@ -639,6 +759,7 @@ fn test_fields_on_named_struct() {
                     segments: [
                         PathSegment {
                             ident: "String",
+                            arguments: None,
                         },
                     ],
                 },
@@ -656,19 +777,20 @@ fn test_fields_on_tuple_struct() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "S",
         generics: Generics,
         data: Data::Struct {
             fields: Fields::Unnamed {
                 unnamed: [
                     Field {
-                        vis: Visibility::Inherited,
+                        vis: Inherited,
                         ty: Type::Path {
                             path: Path {
                                 segments: [
                                     PathSegment {
                                         ident: "i32",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -681,6 +803,7 @@ fn test_fields_on_tuple_struct() {
                                 segments: [
                                     PathSegment {
                                         ident: "String",
+                                        arguments: None,
                                     },
                                 ],
                             },
@@ -701,12 +824,13 @@ fn test_fields_on_tuple_struct() {
     snapshot!(data.fields.iter().collect::<Vec<_>>(), @r###"
     [
         Field {
-            vis: Visibility::Inherited,
+            vis: Inherited,
             ty: Type::Path {
                 path: Path {
                     segments: [
                         PathSegment {
                             ident: "i32",
+                            arguments: None,
                         },
                     ],
                 },
@@ -719,6 +843,7 @@ fn test_fields_on_tuple_struct() {
                     segments: [
                         PathSegment {
                             ident: "String",
+                            arguments: None,
                         },
                     ],
                 },
@@ -737,22 +862,24 @@ fn test_ambiguous_crate() {
 
     snapshot!(input as DeriveInput, @r###"
     DeriveInput {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         ident: "S",
         generics: Generics,
         data: Data::Struct {
             fields: Fields::Unnamed {
                 unnamed: [
                     Field {
-                        vis: Visibility::Inherited,
+                        vis: Inherited,
                         ty: Type::Path {
                             path: Path {
                                 segments: [
                                     PathSegment {
                                         ident: "crate",
+                                        arguments: None,
                                     },
                                     PathSegment {
                                         ident: "X",
+                                        arguments: None,
                                     },
                                 ],
                             },

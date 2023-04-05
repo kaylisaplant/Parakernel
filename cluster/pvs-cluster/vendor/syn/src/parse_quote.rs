@@ -24,8 +24,9 @@
 /// }
 /// ```
 ///
-/// *This macro is available only if Syn is built with both the `"parsing"` and
-/// `"printing"` features.*
+/// *This macro is available only if Syn is built with the `"parsing"` feature,
+/// although interpolation of syntax tree nodes into the quoted tokens is only
+/// supported if Syn is built with the `"printing"` feature as well.*
 ///
 /// # Example
 ///
@@ -68,7 +69,7 @@
 #[macro_export]
 macro_rules! parse_quote {
     ($($tt:tt)*) => {
-        $crate::__private::parse_quote($crate::__private::quote::quote!($($tt)*))
+        $crate::parse_quote::parse($crate::__private::quote::quote!($($tt)*))
     };
 }
 
@@ -100,7 +101,7 @@ macro_rules! parse_quote {
 #[macro_export]
 macro_rules! parse_quote_spanned {
     ($span:expr=> $($tt:tt)*) => {
-        $crate::__private::parse_quote($crate::__private::quote::quote_spanned!($span=> $($tt)*))
+        $crate::parse_quote::parse($crate::__private::quote::quote_spanned!($span=> $($tt)*))
     };
 }
 
@@ -120,6 +121,8 @@ pub fn parse<T: ParseQuote>(token_stream: TokenStream) -> T {
     }
 }
 
+// Not public API.
+#[doc(hidden)]
 pub trait ParseQuote: Sized {
     fn parse(input: ParseStream) -> Result<Self>;
 }
@@ -137,7 +140,7 @@ use crate::punctuated::Punctuated;
 #[cfg(any(feature = "full", feature = "derive"))]
 use crate::{attr, Attribute};
 #[cfg(feature = "full")]
-use crate::{Block, Pat, Stmt};
+use crate::{Block, Stmt};
 
 #[cfg(any(feature = "full", feature = "derive"))]
 impl ParseQuote for Attribute {
@@ -147,20 +150,6 @@ impl ParseQuote for Attribute {
         } else {
             attr::parsing::single_parse_outer(input)
         }
-    }
-}
-
-#[cfg(feature = "full")]
-impl ParseQuote for Pat {
-    fn parse(input: ParseStream) -> Result<Self> {
-        Pat::parse_multi_with_leading_vert(input)
-    }
-}
-
-#[cfg(feature = "full")]
-impl ParseQuote for Box<Pat> {
-    fn parse(input: ParseStream) -> Result<Self> {
-        <Pat as ParseQuote>::parse(input).map(Box::new)
     }
 }
 

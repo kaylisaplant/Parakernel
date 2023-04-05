@@ -3,7 +3,7 @@ use super::*;
 ast_struct! {
     /// A complete file of Rust source code.
     ///
-    /// Typically `File` objects are created with [`parse_file`].
+    /// *This type is available only if Syn is built with the `"full"` feature.*
     ///
     /// # Example
     ///
@@ -86,7 +86,7 @@ ast_struct! {
 }
 
 #[cfg(feature = "parsing")]
-pub(crate) mod parsing {
+pub mod parsing {
     use super::*;
     use crate::parse::{Parse, ParseStream, Result};
 

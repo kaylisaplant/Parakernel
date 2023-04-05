@@ -120,7 +120,7 @@ pub fn Lifetime(marker: lookahead::TokenMarker) -> Lifetime {
 }
 
 #[cfg(feature = "parsing")]
-pub(crate) mod parsing {
+pub mod parsing {
     use super::*;
     use crate::parse::{Parse, ParseStream, Result};
 

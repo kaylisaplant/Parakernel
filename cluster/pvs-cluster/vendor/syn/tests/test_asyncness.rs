@@ -1,5 +1,3 @@
-#![allow(clippy::uninlined_format_args)]
-
 #[macro_use]
 mod macros;
 
@@ -11,12 +9,12 @@ fn test_async_fn() {
 
     snapshot!(input as Item, @r###"
     Item::Fn {
-        vis: Visibility::Inherited,
+        vis: Inherited,
         sig: Signature {
             asyncness: Some,
             ident: "process",
             generics: Generics,
-            output: ReturnType::Default,
+            output: Default,
         },
         block: Block,
     }
@@ -30,7 +28,7 @@ fn test_async_closure() {
     snapshot!(input as Expr, @r###"
     Expr::Closure {
         asyncness: Some,
-        output: ReturnType::Default,
+        output: Default,
         body: Expr::Block {
             block: Block,
         },

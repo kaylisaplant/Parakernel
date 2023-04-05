@@ -1,5 +1,3 @@
-#![allow(clippy::uninlined_format_args)]
-
 use syn::punctuated::{Pair, Punctuated};
 use syn::Token;
 

@@ -1,8 +1,7 @@
 use crate::error::Result;
 use crate::parse::ParseBuffer;
 use crate::token;
-use proc_macro2::extra::DelimSpan;
-use proc_macro2::Delimiter;
+use proc_macro2::{Delimiter, Span};
 
 // Not public API.
 #[doc(hidden)]
@@ -63,7 +62,7 @@ pub fn parse_brackets<'a>(input: &ParseBuffer<'a>) -> Result<Brackets<'a>> {
 #[cfg(any(feature = "full", feature = "derive"))]
 pub(crate) fn parse_group<'a>(input: &ParseBuffer<'a>) -> Result<Group<'a>> {
     parse_delimited(input, Delimiter::None).map(|(span, content)| Group {
-        token: token::Group(span.join()),
+        token: token::Group(span),
         content,
     })
 }
@@ -71,7 +70,7 @@ pub(crate) fn parse_group<'a>(input: &ParseBuffer<'a>) -> Result<Group<'a>> {
 fn parse_delimited<'a>(
     input: &ParseBuffer<'a>,
     delimiter: Delimiter,
-) -> Result<(DelimSpan, ParseBuffer<'a>)> {
+) -> Result<(Span, ParseBuffer<'a>)> {
     input.step(|cursor| {
         if let Some((content, span, rest)) = cursor.group(delimiter) {
             let scope = crate::buffer::close_span_of_group(*cursor);
@@ -120,7 +119,7 @@ fn parse_delimited<'a>(
 ///             struct_token: input.parse()?,
 ///             ident: input.parse()?,
 ///             paren_token: parenthesized!(content in input),
-///             fields: content.parse_terminated(Type::parse, Token![,])?,
+///             fields: content.parse_terminated(Type::parse)?,
 ///             semi_token: input.parse()?,
 ///         })
 ///     }
@@ -186,7 +185,7 @@ macro_rules! parenthesized {
 ///             struct_token: input.parse()?,
 ///             ident: input.parse()?,
 ///             brace_token: braced!(content in input),
-///             fields: content.parse_terminated(Field::parse, Token![,])?,
+///             fields: content.parse_terminated(Field::parse)?,
 ///         })
 ///     }
 /// }

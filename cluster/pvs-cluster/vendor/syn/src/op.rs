@@ -1,7 +1,9 @@
 ast_enum! {
     /// A binary operator: `+`, `+=`, `&`.
+    ///
+    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
+    /// feature.*
     #[cfg_attr(doc_cfg, doc(cfg(any(feature = "full", feature = "derive"))))]
-    #[non_exhaustive]
     pub enum BinOp {
         /// The `+` operator (addition)
         Add(Token![+]),
@@ -40,32 +42,34 @@ ast_enum! {
         /// The `>` operator (greater than)
         Gt(Token![>]),
         /// The `+=` operator
-        AddAssign(Token![+=]),
+        AddEq(Token![+=]),
         /// The `-=` operator
-        SubAssign(Token![-=]),
+        SubEq(Token![-=]),
         /// The `*=` operator
-        MulAssign(Token![*=]),
+        MulEq(Token![*=]),
         /// The `/=` operator
-        DivAssign(Token![/=]),
+        DivEq(Token![/=]),
         /// The `%=` operator
-        RemAssign(Token![%=]),
+        RemEq(Token![%=]),
         /// The `^=` operator
-        BitXorAssign(Token![^=]),
+        BitXorEq(Token![^=]),
         /// The `&=` operator
-        BitAndAssign(Token![&=]),
+        BitAndEq(Token![&=]),
         /// The `|=` operator
-        BitOrAssign(Token![|=]),
+        BitOrEq(Token![|=]),
         /// The `<<=` operator
-        ShlAssign(Token![<<=]),
+        ShlEq(Token![<<=]),
         /// The `>>=` operator
-        ShrAssign(Token![>>=]),
+        ShrEq(Token![>>=]),
     }
 }
 
 ast_enum! {
     /// A unary operator: `*`, `!`, `-`.
+    ///
+    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
+    /// feature.*
     #[cfg_attr(doc_cfg, doc(cfg(any(feature = "full", feature = "derive"))))]
-    #[non_exhaustive]
     pub enum UnOp {
         /// The `*` operator for dereferencing
         Deref(Token![*]),
@@ -77,7 +81,7 @@ ast_enum! {
 }
 
 #[cfg(feature = "parsing")]
-pub(crate) mod parsing {
+pub mod parsing {
     use super::*;
     use crate::parse::{Parse, ParseStream, Result};
 
@@ -133,25 +137,25 @@ pub(crate) mod parsing {
         #[cfg(feature = "full")]
         fn parse(input: ParseStream) -> Result<Self> {
             if input.peek(Token![+=]) {
-                input.parse().map(BinOp::AddAssign)
+                input.parse().map(BinOp::AddEq)
             } else if input.peek(Token![-=]) {
-                input.parse().map(BinOp::SubAssign)
+                input.parse().map(BinOp::SubEq)
             } else if input.peek(Token![*=]) {
-                input.parse().map(BinOp::MulAssign)
+                input.parse().map(BinOp::MulEq)
             } else if input.peek(Token![/=]) {
-                input.parse().map(BinOp::DivAssign)
+                input.parse().map(BinOp::DivEq)
             } else if input.peek(Token![%=]) {
-                input.parse().map(BinOp::RemAssign)
+                input.parse().map(BinOp::RemEq)
             } else if input.peek(Token![^=]) {
-                input.parse().map(BinOp::BitXorAssign)
+                input.parse().map(BinOp::BitXorEq)
             } else if input.peek(Token![&=]) {
-                input.parse().map(BinOp::BitAndAssign)
+                input.parse().map(BinOp::BitAndEq)
             } else if input.peek(Token![|=]) {
-                input.parse().map(BinOp::BitOrAssign)
+                input.parse().map(BinOp::BitOrEq)
             } else if input.peek(Token![<<=]) {
-                input.parse().map(BinOp::ShlAssign)
+                input.parse().map(BinOp::ShlEq)
             } else if input.peek(Token![>>=]) {
-                input.parse().map(BinOp::ShrAssign)
+                input.parse().map(BinOp::ShrEq)
             } else {
                 parse_binop(input)
             }
@@ -203,16 +207,16 @@ mod printing {
                 BinOp::Ne(t) => t.to_tokens(tokens),
                 BinOp::Ge(t) => t.to_tokens(tokens),
                 BinOp::Gt(t) => t.to_tokens(tokens),
-                BinOp::AddAssign(t) => t.to_tokens(tokens),
-                BinOp::SubAssign(t) => t.to_tokens(tokens),
-                BinOp::MulAssign(t) => t.to_tokens(tokens),
-                BinOp::DivAssign(t) => t.to_tokens(tokens),
-                BinOp::RemAssign(t) => t.to_tokens(tokens),
-                BinOp::BitXorAssign(t) => t.to_tokens(tokens),
-                BinOp::BitAndAssign(t) => t.to_tokens(tokens),
-                BinOp::BitOrAssign(t) => t.to_tokens(tokens),
-                BinOp::ShlAssign(t) => t.to_tokens(tokens),
-                BinOp::ShrAssign(t) => t.to_tokens(tokens),
+                BinOp::AddEq(t) => t.to_tokens(tokens),
+                BinOp::SubEq(t) => t.to_tokens(tokens),
+                BinOp::MulEq(t) => t.to_tokens(tokens),
+                BinOp::DivEq(t) => t.to_tokens(tokens),
+                BinOp::RemEq(t) => t.to_tokens(tokens),
+                BinOp::BitXorEq(t) => t.to_tokens(tokens),
+                BinOp::BitAndEq(t) => t.to_tokens(tokens),
+                BinOp::BitOrEq(t) => t.to_tokens(tokens),
+                BinOp::ShlEq(t) => t.to_tokens(tokens),
+                BinOp::ShrEq(t) => t.to_tokens(tokens),
             }
         }
     }

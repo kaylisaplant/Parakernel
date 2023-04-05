@@ -1,10 +1,9 @@
-#![allow(clippy::uninlined_format_args)]
-
 #[macro_use]
 mod macros;
 
 use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
+use std::iter::FromIterator;
 use syn::{parse_quote, Expr, Type, TypePath};
 
 #[test]
@@ -23,9 +22,11 @@ fn parse_interpolated_leading_component() {
             segments: [
                 PathSegment {
                     ident: "first",
+                    arguments: None,
                 },
                 PathSegment {
                     ident: "rest",
+                    arguments: None,
                 },
             ],
         },
@@ -38,9 +39,11 @@ fn parse_interpolated_leading_component() {
             segments: [
                 PathSegment {
                     ident: "first",
+                    arguments: None,
                 },
                 PathSegment {
                     ident: "rest",
+                    arguments: None,
                 },
             ],
         },
@@ -103,26 +106,21 @@ fn print_incomplete_qpath() {
 #[test]
 fn parse_parenthesized_path_arguments_with_disambiguator() {
     #[rustfmt::skip]
-    let tokens = quote!(dyn FnOnce::() -> !);
+    let tokens = quote!(FnOnce::() -> !);
     snapshot!(tokens as Type, @r###"
-    Type::TraitObject {
-        dyn_token: Some,
-        bounds: [
-            TypeParamBound::Trait(TraitBound {
-                path: Path {
-                    segments: [
-                        PathSegment {
-                            ident: "FnOnce",
-                            arguments: PathArguments::Parenthesized {
-                                output: ReturnType::Type(
-                                    Type::Never,
-                                ),
-                            },
-                        },
-                    ],
+    Type::Path {
+        path: Path {
+            segments: [
+                PathSegment {
+                    ident: "FnOnce",
+                    arguments: PathArguments::Parenthesized {
+                        output: Type(
+                            Type::Never,
+                        ),
+                    },
                 },
-            }),
-        ],
+            ],
+        },
     }
     "###);
 }
