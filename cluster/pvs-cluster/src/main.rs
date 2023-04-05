@@ -5,6 +5,14 @@ mod connection;
 use connection::{cread, cwrite};
 
 use clap::{Arg, Command, ArgAction};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+fn unix_timestamp() -> u64 {
+    let now = SystemTime::now();
+    let since_epoch = now.duration_since(UNIX_EPOCH).unwrap();
+    since_epoch.as_secs()
+}
+
 
 fn main() -> std::io::Result<()> {
 
@@ -189,7 +197,9 @@ fn main() -> std::io::Result<()> {
             let host =   args.get_one::<String>("host").unwrap().as_str();
             let port = * args.get_one::<i32>("port").unwrap();
 
-            let _rec = cwrite(host, port, "hi there!");
+            let _rec = cwrite(
+                host, port, & String::from(format!("{}", unix_timestamp()))
+            );
         }
 
         &_ => todo!()
