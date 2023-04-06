@@ -2,10 +2,10 @@ mod network;
 use network::{get_local_ips, get_matching_ipstr};
 
 mod connection;
-use connection::{cread, cwrite};
+use connection::{cread, cwrite, Addr, ConnectionHandler, server};
 
 mod service;
-use service::{Payload, serialize};
+use service::{Payload, serialize, request_handler};
 
 use clap::{Arg, Command, ArgAction};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -182,13 +182,14 @@ fn main() -> std::io::Result<()> {
             assert!(args.contains_id("host"));
             assert!(args.contains_id("port"));
 
-            let host =   args.get_one::<String>("host").unwrap().as_str();
-            let port = * args.get_one::<i32>("port").unwrap();
-
-            let rec = cread(host, port)?;
-            println!("REC: {:?}", rec);
-
-
+            let handler: ConnectionHandler = request_handler;
+            let addr = Addr {
+                host:   args.get_one::<String>("host").unwrap(),
+                port: * args.get_one::<i32>("port").unwrap()
+            };
+            server(& addr, handler);
+            // let rec = cread(host, port)?;
+            // println!("REC: {:?}", rec);
         }
 
         "claim" => {
@@ -207,7 +208,7 @@ fn main() -> std::io::Result<()> {
                 (get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
                 get_matching_ipstr(& ips.ipv6_addrs, name, & None))
             };
-            let payload = serialize( & Payload {
+            let payload = serialize(& Payload {
                 service_addr: ipstr,
                 service_port: port,
                 service_claim: unix_timestamp(),

@@ -1,6 +1,14 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
+
+#[derive(Debug)]
+pub struct Addr<'a> {
+    pub host: &'a String,
+    pub port: i32
+}
+
+
 pub fn cread(addr: & str, port: i32) -> std::io::Result<String> {
     let listener = TcpListener::bind(format!("{}:{}", addr, port))?;
     let (mut stream, _) = listener.accept()?;
@@ -26,5 +34,31 @@ pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
 
     stream.write_all(msg.as_bytes())?;
 
-    return Ok(())
+    let mut buffer = [0; 1024];
+    let bytes_read = stream.read(&mut buffer).unwrap();
+    let response = String::from_utf8_lossy(&buffer[..bytes_read]);
+    println!("Received response: {}", response);
+
+    Ok(())
+}
+
+pub type ConnectionHandler = fn(& mut TcpStream) -> std::io::Result<()>;
+
+pub fn server(addr: & Addr, handler: ConnectionHandler) -> std::io::Result<()> {
+    //let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
+    let listener = TcpListener::bind(format!("{}:{}", addr.host, addr.port))?;
+
+    // accept connections and process them serially
+    for stream in listener.incoming() {
+        match stream {
+            Ok(mut stream) => {
+                // pass the handle_connection function as a function pointer
+                handler(&mut stream);
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+            }
+        }
+    }
+    Ok(())
 }
