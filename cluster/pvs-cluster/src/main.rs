@@ -4,6 +4,9 @@ use network::{get_local_ips, get_matching_ipstr};
 mod connection;
 use connection::{cread, cwrite};
 
+mod service;
+use service::{Payload, serialize};
+
 use clap::{Arg, Command, ArgAction};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -155,7 +158,7 @@ fn main() -> std::io::Result<()> {
                     if verbose {
                         println!(" - {}", ip);
                     } else {
-                        println!(" {}", ip);
+                        println!("{}", ip);
                     }
                 }
             }
@@ -169,7 +172,7 @@ fn main() -> std::io::Result<()> {
                     if verbose {
                         println!(" - {}", ip);
                     } else {
-                        println!(" {}", ip);
+                        println!("{}", ip);
                     }
                 }
             }
@@ -189,13 +192,26 @@ fn main() -> std::io::Result<()> {
         "claim" => {
             assert!(args.contains_id("host"));
             assert!(args.contains_id("port"));
-
+            assert!(args.contains_id("interface_name"));
             let host =   args.get_one::<String>("host").unwrap().as_str();
             let port = * args.get_one::<i32>("port").unwrap();
 
-            let _rec = cwrite(
-                host, port, & String::from(format!("{}", unix_timestamp()))
-            );
+            let name = args.get_one::<String>("interface_name").unwrap().as_str();
+            let starting_octets = args.get_one::<String>("ip_start");
+            let (ipstr, all_ipstr) = if print_v4 {
+                (get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets),
+                get_matching_ipstr(& ips.ipv4_addrs, name, & None))
+            } else {
+                (get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
+                get_matching_ipstr(& ips.ipv6_addrs, name, & None))
+            };
+            let payload = serialize( & Payload {
+                service_addr: ipstr,
+                service_port: port,
+                service_claim: unix_timestamp(),
+                interface_addr: all_ipstr
+            });
+            let _rec = cwrite(host, port, & payload);
         }
 
         &_ => todo!()
