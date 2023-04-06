@@ -16,8 +16,6 @@ pub struct LocalIpAddresses {
     pub ipv6_addrs: Vec<LocalInterface>
 }
 
-
-
 pub fn get_local_ips() -> LocalIpAddresses {
     let mut ipv4_addrs = Vec::new();
     let mut ipv6_addrs = Vec::new();
@@ -50,12 +48,28 @@ pub fn get_local_ips() -> LocalIpAddresses {
     }
 }
 
-
 pub fn ipstr_starts_with(
-        ip: & IpAddr, starting_octets: & Option<& String>
-    ) -> bool {
+    ip: & IpAddr, starting_octets: & Option<& String>
+) -> bool {
     match * starting_octets {
         Some(start) => ip.to_string().starts_with(start),
         None => true,
     }
+}
+
+pub fn get_matching_ipstr(
+    ips: & Vec<LocalInterface>,
+    interface_name: & str, starting_octets: & Option<& String>
+) -> Vec<String> {
+    let mut ipstr = Vec::new();
+    let target_name = Some(interface_name.to_string());
+
+    for ip in ips {
+        if ip.name == target_name || ip.name == None {
+            if ! ipstr_starts_with(& ip.ip, starting_octets){continue;}
+            ipstr.push(ip.ip.to_string())
+        }
+    }
+
+    ipstr
 }

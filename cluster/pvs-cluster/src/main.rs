@@ -1,5 +1,5 @@
 mod network;
-use network::{get_local_ips, ipstr_starts_with};
+use network::{get_local_ips, get_matching_ipstr};
 
 mod connection;
 use connection::{cread, cwrite};
@@ -147,33 +147,29 @@ fn main() -> std::io::Result<()> {
             let starting_octets = args.get_one::<String>("ip_start");
 
             if print_v4 {
+                let ipstr = get_matching_ipstr(
+                    & ips.ipv4_addrs, name, & starting_octets
+                );
                 if verbose {println!("IPv4 Addresses for {}:", name);}
-                for ip in ips.ipv4_addrs {
-                    if name == ip.name.unwrap_or_default() {
-                        if ! ipstr_starts_with(& ip.ip, & starting_octets){
-                            continue;
-                        }
-                        if verbose {
-                            println!(" - {}", ip.ip);
-                        } else {
-                            println!("{}", ip.ip);
-                        }
+                for ip in ipstr {
+                    if verbose {
+                        println!(" - {}", ip);
+                    } else {
+                        println!(" {}", ip);
                     }
                 }
             }
 
             if print_v6 {
+                let ipstr = get_matching_ipstr(
+                    & ips.ipv6_addrs, name, & starting_octets
+                );
                 if verbose {println!("IPv6 Addresses for {}:", name);}
-                for ip in ips.ipv6_addrs {
-                    if name == ip.name.unwrap_or_default() {
-                        if ! ipstr_starts_with(& ip.ip, & starting_octets){
-                            continue;
-                        }
-                        if verbose {
-                            println!(" - {}", ip.ip);
-                        } else {
-                            println!("{}", ip.ip);
-                        }
+                for ip in ipstr {
+                    if verbose {
+                        println!(" - {}", ip);
+                    } else {
+                        println!(" {}", ip);
                     }
                 }
             }
