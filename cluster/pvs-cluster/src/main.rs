@@ -187,6 +187,8 @@ fn main() -> std::io::Result<()> {
 
             let rec = cread(host, port)?;
             println!("REC: {:?}", rec);
+
+
         }
 
         "claim" => {
