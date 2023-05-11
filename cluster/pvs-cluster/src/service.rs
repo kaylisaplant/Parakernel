@@ -1,5 +1,6 @@
-use std::net::{TcpStream};
 use std::io::{Read, Write};
+use std::net::TcpStream;
+use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -7,7 +8,13 @@ pub struct Payload {
     pub service_addr: Vec<String>,
     pub service_port: i32,
     pub service_claim: u64,
-    pub interface_addr: Vec<String>
+    pub interface_addr: Vec<String>,
+    pub key: u64
+}
+
+#[derive(Debug)]
+pub struct State {
+    pub clients: HashMap<u64, Payload>,
 }
 
 pub fn serialize(payload: & Payload) -> String {

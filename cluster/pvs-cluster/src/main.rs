@@ -86,6 +86,15 @@ fn main() -> std::io::Result<()> {
             .required(false)
             .value_parser(clap::value_parser!(i32))
         )
+        .arg(
+            Arg::new("key")
+            .long("key")
+            .value_name("KEY")
+            .help("Service access key")
+            .num_args(1)
+            .required(false)
+            .value_parser(clap::value_parser!(u64))
+        )
         .get_matches();
 
     let ips = get_local_ips();
@@ -196,8 +205,11 @@ fn main() -> std::io::Result<()> {
             assert!(args.contains_id("host"));
             assert!(args.contains_id("port"));
             assert!(args.contains_id("interface_name"));
+            assert!(args.contains_id("key"));
+
             let host =   args.get_one::<String>("host").unwrap().as_str();
             let port = * args.get_one::<i32>("port").unwrap();
+            let key  = * args.get_one::<u64>("key").unwrap();
 
             let name = args.get_one::<String>("interface_name").unwrap().as_str();
             let starting_octets = args.get_one::<String>("ip_start");
@@ -212,7 +224,8 @@ fn main() -> std::io::Result<()> {
                 service_addr: ipstr,
                 service_port: port,
                 service_claim: unix_timestamp(),
-                interface_addr: all_ipstr
+                interface_addr: all_ipstr,
+                key: key
             });
             let _rec = cwrite(host, port, & payload);
         }
