@@ -42,9 +42,11 @@ pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
     Ok(())
 }
 
-pub type ConnectionHandler = fn(& mut TcpStream) -> std::io::Result<()>;
 
-pub fn server(addr: & Addr, handler: ConnectionHandler) -> std::io::Result<()> {
+pub fn server(
+    addr: &Addr, 
+    mut handler: impl FnMut(&mut TcpStream) -> std::io::Result<()>
+) -> std::io::Result<()> {
     //let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
     let listener = TcpListener::bind(format!("{}:{}", addr.host, addr.port))?;
 

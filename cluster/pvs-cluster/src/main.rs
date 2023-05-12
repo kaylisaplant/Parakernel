@@ -2,13 +2,14 @@ mod network;
 use network::{get_local_ips, get_matching_ipstr};
 
 mod connection;
-use connection::{cread, cwrite, Addr, ConnectionHandler, server};
+use connection::{cread, cwrite, Addr, server};
 
 mod service;
-use service::{Payload, serialize, request_handler};
+use service::{Payload, State, serialize, request_handler};
 
 use clap::{Arg, Command, ArgAction};
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::net::TcpStream;
 
 fn unix_timestamp() -> u64 {
     let now = SystemTime::now();
@@ -191,11 +192,16 @@ fn main() -> std::io::Result<()> {
             assert!(args.contains_id("host"));
             assert!(args.contains_id("port"));
 
-            let handler: ConnectionHandler = request_handler;
+            let mut state: State = State::new();
+            let mut handler =  |stream: &mut TcpStream| {
+                return request_handler(&mut state, stream);
+            };
+
             let addr = Addr {
                 host:   args.get_one::<String>("host").unwrap(),
                 port: * args.get_one::<i32>("port").unwrap()
             };
+
             server(& addr, handler);
             // let rec = cread(host, port)?;
             // println!("REC: {:?}", rec);
