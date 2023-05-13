@@ -32,7 +32,7 @@ fn main() -> std::io::Result<()> {
             .help("Operation to be performed")
             .num_args(1)
             .required(true)
-            .value_parser(["list_interfaces", "list_ips", "listen", "claim"])
+            .value_parser(["list_interfaces", "list_ips", "listen", "claim", "publish"])
         )
         .arg(
             Arg::new("interface_name")
@@ -219,13 +219,14 @@ fn main() -> std::io::Result<()> {
 
             let name = args.get_one::<String>("interface_name").unwrap().as_str();
             let starting_octets = args.get_one::<String>("ip_start");
-            let (ipstr, all_ipstr) = if print_v4 {
-                (get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets),
-                get_matching_ipstr(& ips.ipv4_addrs, name, & None))
-            } else {
-                (get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
-                get_matching_ipstr(& ips.ipv6_addrs, name, & None))
-            };
+            let (ipstr, all_ipstr) = if print_v4 {(
+                get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets),
+                get_matching_ipstr(& ips.ipv4_addrs, name, & None)
+            )} else {(
+                get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
+                get_matching_ipstr(& ips.ipv6_addrs, name, & None)
+            )};
+
             let payload = serialize(& Payload {
                 service_addr: ipstr,
                 service_port: port,
@@ -233,7 +234,15 @@ fn main() -> std::io::Result<()> {
                 interface_addr: all_ipstr,
                 key: key
             });
+
             let _rec = cwrite(host, port, & payload);
+        }
+
+        "publish" => {
+            assert!(args.contains_id("host"));
+            assert!(args.contains_id("port"));
+            assert!(args.contains_id("interface_name"));
+            assert!(args.contains_id("key"));
         }
 
         &_ => todo!()

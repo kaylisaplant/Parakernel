@@ -41,6 +41,10 @@ pub fn serialize(payload: & Payload) -> String {
     serde_json::to_string(payload).unwrap()
 }
 
+pub fn deserialize(payload: & String) -> Payload {
+    serde_json::from_str(payload).unwrap()
+}
+
 pub fn request_handler(
     state: & mut State, stream: & mut TcpStream
 ) -> std::io::Result<()> {
