@@ -7,6 +7,9 @@ use connection::{cread, cwrite, Addr, server};
 mod service;
 use service::{Payload, State, serialize, request_handler};
 
+mod utils;
+use utils::only_or_error;
+
 use clap::{Arg, Command, ArgAction};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::net::TcpStream;
@@ -48,7 +51,7 @@ fn main() -> std::io::Result<()> {
             .short('i')
             .long("ip-start")
             .value_name("STARTING OCTETS")
-            .help("Only return ip addresses whose starting octets match these.")
+            .help("Only return ip addresses whose starting octets match these")
             .num_args(1)
             .required(false)
         )
@@ -57,6 +60,15 @@ fn main() -> std::io::Result<()> {
             .long("ip-version")
             .value_name("IP VERSION")
             .help("Output results only matching this IP version")
+            .num_args(1)
+            .required(false)
+            .value_parser(clap::value_parser!(i32))
+        )
+        .arg(
+            Arg::new("bind_port")
+            .long("bind-port")
+            .value_name("PORT")
+            .help("Port to bind server and client to")
             .num_args(1)
             .required(false)
             .value_parser(clap::value_parser!(i32))
@@ -82,7 +94,7 @@ fn main() -> std::io::Result<()> {
             Arg::new("port")
             .long("port")
             .value_name("PORT")
-            .help("Port to bind server and client to.")
+            .help("Port to bind server and client to")
             .num_args(1)
             .required(false)
             .value_parser(clap::value_parser!(i32))
@@ -189,8 +201,18 @@ fn main() -> std::io::Result<()> {
         }
 
         "listen" => {
-            assert!(args.contains_id("host"));
-            assert!(args.contains_id("port"));
+            assert!(args.contains_id("interface_name"));
+            assert!(args.contains_id("bind_port"));
+
+            let port = * args.get_one::<i32>("bind_port").unwrap();
+            let name =   args.get_one::<String>("interface_name").unwrap().as_str();
+            let starting_octets = args.get_one::<String>("ip_start");
+            let ipstr = if print_v4 {
+                get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets)
+            } else {
+                get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets)
+            };
+            let host = only_or_error(& ipstr);
 
             let mut state: State = State::new();
             let mut handler =  |stream: &mut TcpStream| {
@@ -198,8 +220,8 @@ fn main() -> std::io::Result<()> {
             };
 
             let addr = Addr {
-                host:   args.get_one::<String>("host").unwrap(),
-                port: * args.get_one::<i32>("port").unwrap()
+                host: host,
+                port: port
             };
 
             server(& addr, handler);
