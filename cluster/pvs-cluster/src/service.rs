@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{Read, Write, Result};
 use std::net::TcpStream;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
@@ -23,9 +23,14 @@ impl State {
             clients: HashMap::new()
         }
     }
+
     pub fn add(&mut self, p: Payload) {
         let cl: &mut Vec<Payload> = self.clients.entry(p.key).or_insert(Vec::new());
         cl.push(p);
+    }
+
+    pub fn claim(&mut self, k:u64) ->Result {
+
     }
 
     pub fn print(&mut self) {
@@ -45,17 +50,42 @@ pub fn deserialize(payload: & String) -> Payload {
     serde_json::from_str(payload).unwrap()
 }
 
+fn stream_read(stream: & mut TcpStream) -> Result<String>{
+    let mut buf = [0; 1024];
+    let mut message = String::new();
+
+    loop {
+        let bytes_read = stream.read(&mut buf)?;
+        let s = std::str::from_utf8(&buf[..bytes_read]).unwrap();
+        message.push_str(s);
+
+        if bytes_read < buf.len() {
+            break;
+        }
+    }
+
+    Ok(message)
+}
+
 pub fn request_handler(
     state: & mut State, stream: & mut TcpStream
 ) -> std::io::Result<()> {
-    let mut buffer = [0; 512];
-    stream.read(& mut buffer)?;
+
+    let payload = match stream_read(stream) {
+        Ok(message) => deserialize(& message),
+        Err(message) => panic!("Encountered error {}", message)
+    };
+
+    println!("Reqest processed: {:?}", payload);
+    if state.clients.contains_key(& payload.key){
+
+    }
 
     let response = "HTTP/1.1 200 OK\r\n\r\n";
     stream.write(response.as_bytes())?;
     stream.flush()?;
 
-    println!("Reqest processed");
+    println!("Now state:");
     state.print();
 
     Ok(())
