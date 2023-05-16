@@ -8,6 +8,8 @@ pub fn only_or_error(vec: & Vec<String>) -> & String {
     }
 }
 
+
+#[allow(unused)]
 pub fn only_or_none(vec: & Vec<String>) -> Option<& String> {
     match vec.as_slice() {
         [element] => Some(element),
@@ -15,11 +17,13 @@ pub fn only_or_none(vec: & Vec<String>) -> Option<& String> {
     }
 }
 
+
+#[allow(unused)]
 pub fn epoch() -> u64 {
     let now = SystemTime::now();
-    let epoch = now.duration_since(UNIX_EPOCH).expect(
+    let now_epoch = now.duration_since(UNIX_EPOCH).expect(
         "Failed to calculate duration"
     );
 
-    epoch.as_secs()
+    now_epoch.as_secs()
 }

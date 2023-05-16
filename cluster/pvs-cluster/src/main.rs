@@ -2,7 +2,7 @@ mod network;
 use network::{get_local_ips, get_matching_ipstr};
 
 mod connection;
-use connection::{cread, cwrite, Addr, server};
+use connection::{cwrite, Addr, server};
 
 mod service;
 use service::{Payload, State, serialize, request_handler};
@@ -215,7 +215,7 @@ fn main() -> std::io::Result<()> {
             let host = only_or_error(& ipstr);
 
             let mut state: State = State::new();
-            let mut handler =  |stream: &mut TcpStream| {
+            let handler =  |stream: &mut TcpStream| {
                 return request_handler(&mut state, stream);
             };
 
