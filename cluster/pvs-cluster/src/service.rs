@@ -1,7 +1,11 @@
-use std::io::{Read, Write, Result};
+use std::rc::Rc; 
+use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
+
+use crate::utils::epoch;
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Payload {
@@ -15,12 +19,14 @@ pub struct Payload {
 #[derive(Debug)]
 pub struct State {
     pub clients: HashMap<u64, Vec<Payload>>,
+    pub timeout: u64
 }
 
 impl State {
     pub fn new() -> State {
         State{
-            clients: HashMap::new()
+            clients: HashMap::new(),
+            timeout: 60
         }
     }
 
@@ -29,8 +35,21 @@ impl State {
         cl.push(p);
     }
 
-    pub fn claim(&mut self, k:u64) ->Result {
+    pub fn claim(&mut self, k:u64) -> Result<&mut Payload, u64> {
+        match self.clients.get_mut(& k) {
 
+            Some(value) => for v in value {
+                let current_ecpoch = epoch();
+                if current_ecpoch - v.service_claim > self.timeout {
+                    v.service_claim = current_ecpoch;
+                    return Ok(v);
+                }
+            }
+
+            _ => return Err(1)
+        }
+
+        return Err(2);
     }
 
     pub fn print(&mut self) {
@@ -50,7 +69,7 @@ pub fn deserialize(payload: & String) -> Payload {
     serde_json::from_str(payload).unwrap()
 }
 
-fn stream_read(stream: & mut TcpStream) -> Result<String>{
+fn stream_read(stream: & mut TcpStream) -> std::io::Result<String>{
     let mut buf = [0; 1024];
     let mut message = String::new();
 
