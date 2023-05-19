@@ -5,20 +5,13 @@ mod connection;
 use connection::{cwrite, Addr, server};
 
 mod service;
-use service::{Payload, State, serialize, request_handler};
+use service::{Payload, State, serialize, request_handler, heartbeat_handler};
 
 mod utils;
-use utils::only_or_error;
+use utils::{only_or_error, epoch};
 
 use clap::{Arg, Command, ArgAction};
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::net::TcpStream;
-
-fn unix_timestamp() -> u64 {
-    let now = SystemTime::now();
-    let since_epoch = now.duration_since(UNIX_EPOCH).unwrap();
-    since_epoch.as_secs()
-}
 
 
 fn main() -> std::io::Result<()> {
@@ -252,9 +245,10 @@ fn main() -> std::io::Result<()> {
             let payload = serialize(& Payload {
                 service_addr: ipstr,
                 service_port: port,
-                service_claim: unix_timestamp(),
+                service_claim: epoch(),
                 interface_addr: all_ipstr,
-                key: key
+                key: key,
+                id: 0
             });
 
             let _rec = cwrite(host, port, & payload);
@@ -265,6 +259,37 @@ fn main() -> std::io::Result<()> {
             assert!(args.contains_id("port"));
             assert!(args.contains_id("interface_name"));
             assert!(args.contains_id("key"));
+
+            let remote =   args.get_one::<String>("host").unwrap().as_str();
+            let port   = * args.get_one::<i32>("port").unwrap();
+            let key    = * args.get_one::<u64>("key").unwrap();
+
+            let name = args.get_one::<String>("interface_name").unwrap().as_str();
+            let starting_octets = args.get_one::<String>("ip_start");
+            let (ipstr, all_ipstr) = if print_v4 {(
+                get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets),
+                get_matching_ipstr(& ips.ipv4_addrs, name, & None)
+            )} else {(
+                get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
+                get_matching_ipstr(& ips.ipv6_addrs, name, & None)
+            )};
+
+            let payload = serialize(& Payload {
+                service_addr: ipstr.clone(),
+                service_port: port,
+                service_claim: 0,
+                interface_addr: all_ipstr,
+                key: key,
+                id: 0
+            });
+
+            let host = only_or_error(& ipstr);
+            let addr = Addr {
+                host: host,
+                port: port
+            };
+
+            server(& addr, heartbeat_handler);
         }
 
         &_ => todo!()

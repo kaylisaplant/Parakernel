@@ -1,5 +1,6 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use serde::{Serialize, Deserialize};
 
 
 #[derive(Debug)]
@@ -9,25 +10,22 @@ pub struct Addr<'a> {
 }
 
 
-// pub fn cread(addr: & str, port: i32) -> std::io::Result<String> {
-//     let listener = TcpListener::bind(format!("{}:{}", addr, port))?;
-//     let (mut stream, _) = listener.accept()?;
-// 
-//     let mut buf = [0; 1024];
-//     let mut message = String::new();
-// 
-//     loop {
-//         let bytes_read = stream.read(&mut buf)?;
-//         let s = std::str::from_utf8(&buf[..bytes_read]).unwrap();
-//         message.push_str(s);
-// 
-//         if bytes_read < buf.len() {
-//             break;
-//         }
-//     }
-// 
-//     Ok(message)
-// }
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Message{
+    pub header: u8,
+    pub body: String
+}
+
+
+pub fn serialize_message(payload: & Message) -> String {
+    serde_json::to_string(payload).unwrap()
+}
+
+
+pub fn deserialize_message(payload: & String) -> Message {
+    serde_json::from_str(payload).unwrap()
+}
+
 
 pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
     let mut stream = TcpStream::connect(format!("{}:{}", addr, port))?;
@@ -40,6 +38,24 @@ pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
     println!("Received response: {}", response);
 
     Ok(())
+}
+
+
+pub fn stream_read(stream: & mut TcpStream) -> std::io::Result<String>{
+    let mut buf = [0; 1024];
+    let mut message = String::new();
+
+    loop {
+        let bytes_read = stream.read(&mut buf)?;
+        let s = std::str::from_utf8(&buf[..bytes_read]).unwrap();
+        message.push_str(s);
+
+        if bytes_read < buf.len() {
+            break;
+        }
+    }
+
+    Ok(message)
 }
 
 

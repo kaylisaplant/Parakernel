@@ -1,9 +1,10 @@
-use std::io::{Read, Write};
+use std::io::Write;
 use std::net::TcpStream;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 use crate::utils::epoch;
+use crate::connection::{Message, stream_read, serialize_message, deserialize_message};
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -12,26 +13,33 @@ pub struct Payload {
     pub service_port: i32,
     pub service_claim: u64,
     pub interface_addr: Vec<String>,
-    pub key: u64
+    pub key: u64,
+    pub id: u64
 }
+
 
 #[derive(Debug)]
 pub struct State {
     pub clients: HashMap<u64, Vec<Payload>>,
-    pub timeout: u64
+    pub timeout: u64,
+    pub seq: u64
 }
+
 
 impl State {
     pub fn new() -> State {
         State{
             clients: HashMap::new(),
-            timeout: 60
+            timeout: 60,
+            seq: 1
         }
     }
 
-    pub fn add(&mut self, p: Payload) {
+    pub fn add(&mut self, mut p: Payload) {
         let cl: &mut Vec<Payload> = self.clients.entry(p.key).or_insert(Vec::new());
+        p.id = self.seq;
         cl.push(p);
+        self.seq += 1;
     }
 
     pub fn claim(&mut self, k:u64) -> Result<&mut Payload, u64> {
@@ -60,30 +68,16 @@ impl State {
     }
 }
 
+
 pub fn serialize(payload: & Payload) -> String {
     serde_json::to_string(payload).unwrap()
 }
+
 
 pub fn deserialize(payload: & String) -> Payload {
     serde_json::from_str(payload).unwrap()
 }
 
-fn stream_read(stream: & mut TcpStream) -> std::io::Result<String>{
-    let mut buf = [0; 1024];
-    let mut message = String::new();
-
-    loop {
-        let bytes_read = stream.read(&mut buf)?;
-        let s = std::str::from_utf8(&buf[..bytes_read]).unwrap();
-        message.push_str(s);
-
-        if bytes_read < buf.len() {
-            break;
-        }
-    }
-
-    Ok(message)
-}
 
 pub fn request_handler(
     state: & mut State, stream: & mut TcpStream
@@ -105,6 +99,25 @@ pub fn request_handler(
 
     println!("Now state:");
     state.print();
+
+    Ok(())
+}
+
+
+pub fn heartbeat_handler(stream: & mut TcpStream) -> std::io::Result<()> {
+
+    let request = match stream_read(stream) {
+        Ok(message) => deserialize_message(& message),
+        Err(message) => panic!("Encountered error {}", message)
+    };
+
+    if request.header != 0 {
+        panic!("Non-heartbeat request {} sent to heartbeat_handler", request.header);
+    }
+
+    let response = serialize_message(& request);
+    stream.write(response.as_bytes())?;
+    stream.flush()?;
 
     Ok(())
 }
