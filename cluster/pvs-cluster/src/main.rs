@@ -155,7 +155,7 @@ fn main() -> std::io::Result<()> {
             let host = only_or_error(& ipstr);
             let addr = Addr {
                 host: host,
-                port: inputs.service_port
+                port: inputs.bind_port
             };
 
             server(& addr, heartbeat_handler);
