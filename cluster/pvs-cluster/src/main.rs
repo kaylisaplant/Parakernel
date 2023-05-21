@@ -10,130 +10,30 @@ use service::{Payload, State, serialize, request_handler, heartbeat_handler};
 mod utils;
 use utils::{only_or_error, epoch};
 
-use clap::{Arg, Command, ArgAction};
+mod cli;
+use cli::{
+    init, parse, CLIOperation, ListInterfaces, ListIPs, Listen, Claim, Publish
+};
+
 use std::net::TcpStream;
 
 
 fn main() -> std::io::Result<()> {
 
-    let args = Command::new("ParaView Server Cluster")
-        .version("1.0")
-        .author("Johannes Blaschke")
-        .about("Manages a cluster of ParaView Servers")
-        .arg(
-            Arg::new("operation")
-            .short('o')
-            .long("operation")
-            .value_name("OPERATION")
-            .help("Operation to be performed")
-            .num_args(1)
-            .required(true)
-            .value_parser(["list_interfaces", "list_ips", "listen", "claim", "publish"])
-        )
-        .arg(
-            Arg::new("interface_name")
-            .short('n')
-            .long("name")
-            .value_name("NAME")
-            .help("Interface Name")
-            .num_args(1)
-            .required(false)
-        )
-        .arg(
-            Arg::new("ip_start")
-            .short('i')
-            .long("ip-start")
-            .value_name("STARTING OCTETS")
-            .help("Only return ip addresses whose starting octets match these")
-            .num_args(1)
-            .required(false)
-        )
-        .arg(
-            Arg::new("ip_version")
-            .long("ip-version")
-            .value_name("IP VERSION")
-            .help("Output results only matching this IP version")
-            .num_args(1)
-            .required(false)
-            .value_parser(clap::value_parser!(i32))
-        )
-        .arg(
-            Arg::new("bind_port")
-            .long("bind-port")
-            .value_name("PORT")
-            .help("Port to bind server and client to")
-            .num_args(1)
-            .required(false)
-            .value_parser(clap::value_parser!(i32))
-        )
-        .arg(
-            Arg::new("verbose")
-            .short('v')
-            .long("verbose")
-            .help("Don't output headers")
-            .num_args(0)
-            .required(false)
-            .action(ArgAction::SetTrue)
-        )
-        .arg(
-            Arg::new("host")
-            .long("host")
-            .value_name("HOST")
-            .help("Host to bind to")
-            .num_args(1)
-            .required(false)
-        )
-        .arg(
-            Arg::new("port")
-            .long("port")
-            .value_name("PORT")
-            .help("Port to bind server and client to")
-            .num_args(1)
-            .required(false)
-            .value_parser(clap::value_parser!(i32))
-        )
-        .arg(
-            Arg::new("key")
-            .long("key")
-            .value_name("KEY")
-            .help("Service access key")
-            .num_args(1)
-            .required(false)
-            .value_parser(clap::value_parser!(u64))
-        )
-        .get_matches();
-
+    let args = init();
     let ips = get_local_ips();
 
-    let ip_version =   args.get_one::<i32>("ip_version");
-    let verbose    = * args.get_one::<bool>("verbose").unwrap();
-    let mut print_v4 = false;
-    let mut print_v6 = false;
-    if ip_version.is_some() {
-        match * ip_version.unwrap() {
-            4 => print_v4 = true,
-            6 => print_v6 = true,
-            _ => panic!(
-                "Please specify IP version 4 or 6, or ommit `--ip-version` for both."
-            )
-        }
-    } else {
-        print_v4 = true;
-        print_v6 = true;
-    }
-
-    let operation = args.get_one::<String>("operation").unwrap();
-    match operation.as_str() {
-        "list_interfaces" => {
+    match parse(& args) {
+        CLIOperation::ListInterfaces(inputs) => {
             let mut ipv4_names = Vec::new();
             let mut ipv6_names = Vec::new();
 
-            if print_v4 {
-                if verbose {println!("IPv4 Interfaces:");}
+            if inputs.print_v4 {
+                if inputs.verbose {println!("IPv4 Interfaces:");}
                 for ip in ips.ipv4_addrs {
                     let name: & String = & ip.name.unwrap_or_default();
                     if ! ipv4_names.contains(name) {
-                        if verbose {
+                        if inputs.verbose {
                             println!(" - {}", name);
                         } else {
                             println!("{}", name);
@@ -143,12 +43,12 @@ fn main() -> std::io::Result<()> {
                 }
             }
 
-            if print_v6 {
-                if verbose {println!("IPv6 Interfaces:");}
+            if inputs.print_v6 {
+                if inputs.verbose {println!("IPv6 Interfaces:");}
                 for ip in ips.ipv6_addrs {
                     let name: & String = & ip.name.unwrap_or_default();
                     if ! ipv6_names.contains(name) {
-                        if verbose {
+                        if inputs.verbose {
                             println!(" - {}", name);
                         } else {
                             println!("{}", name);
@@ -159,18 +59,14 @@ fn main() -> std::io::Result<()> {
             }
         }
 
-        "list_ips" => {
-            assert!(args.contains_id("interface_name"));
-            let name = args.get_one::<String>("interface_name").unwrap().as_str();
-            let starting_octets = args.get_one::<String>("ip_start");
-
-            if print_v4 {
+        CLIOperation::ListIPs(inputs) => {
+            if inputs.print_v4 {
                 let ipstr = get_matching_ipstr(
-                    & ips.ipv4_addrs, name, & starting_octets
+                    & ips.ipv4_addrs, & inputs.name, & inputs.starting_octets
                 );
-                if verbose {println!("IPv4 Addresses for {}:", name);}
+                if inputs.verbose {println!("IPv4 Addresses for {}:", inputs.name);}
                 for ip in ipstr {
-                    if verbose {
+                    if inputs.verbose {
                         println!(" - {}", ip);
                     } else {
                         println!("{}", ip);
@@ -178,13 +74,13 @@ fn main() -> std::io::Result<()> {
                 }
             }
 
-            if print_v6 {
+            if inputs.print_v6 {
                 let ipstr = get_matching_ipstr(
-                    & ips.ipv6_addrs, name, & starting_octets
+                    & ips.ipv6_addrs, & inputs.name, & inputs.starting_octets
                 );
-                if verbose {println!("IPv6 Addresses for {}:", name);}
+                if inputs.verbose {println!("IPv6 Addresses for {}:", inputs.name);}
                 for ip in ipstr {
-                    if verbose {
+                    if inputs.verbose {
                         println!(" - {}", ip);
                     } else {
                         println!("{}", ip);
@@ -193,17 +89,15 @@ fn main() -> std::io::Result<()> {
             }
         }
 
-        "listen" => {
-            assert!(args.contains_id("interface_name"));
-            assert!(args.contains_id("bind_port"));
-
-            let port = * args.get_one::<i32>("bind_port").unwrap();
-            let name =   args.get_one::<String>("interface_name").unwrap().as_str();
-            let starting_octets = args.get_one::<String>("ip_start");
-            let ipstr = if print_v4 {
-                get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets)
+        CLIOperation::Listen(inputs) => {
+            let ipstr = if inputs.print_v4 {
+                get_matching_ipstr(
+                    & ips.ipv4_addrs, & inputs.name, & inputs.starting_octets
+                )
             } else {
-                get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets)
+                get_matching_ipstr(
+                    & ips.ipv6_addrs, & inputs.name, & inputs.starting_octets
+                )
             };
             let host = only_or_error(& ipstr);
 
@@ -214,7 +108,7 @@ fn main() -> std::io::Result<()> {
 
             let addr = Addr {
                 host: host,
-                port: port
+                port: inputs.bind_port
             };
 
             server(& addr, handler);
@@ -222,77 +116,50 @@ fn main() -> std::io::Result<()> {
             // println!("REC: {:?}", rec);
         }
 
-        "claim" => {
-            assert!(args.contains_id("host"));
-            assert!(args.contains_id("port"));
-            assert!(args.contains_id("interface_name"));
-            assert!(args.contains_id("key"));
-
-            let host =   args.get_one::<String>("host").unwrap().as_str();
-            let port = * args.get_one::<i32>("port").unwrap();
-            let key  = * args.get_one::<u64>("key").unwrap();
-
-            let name = args.get_one::<String>("interface_name").unwrap().as_str();
-            let starting_octets = args.get_one::<String>("ip_start");
-            let (ipstr, all_ipstr) = if print_v4 {(
-                get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets),
-                get_matching_ipstr(& ips.ipv4_addrs, name, & None)
-            )} else {(
-                get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
-                get_matching_ipstr(& ips.ipv6_addrs, name, & None)
-            )};
-
+        CLIOperation::Claim(inputs) => {
             let payload = serialize(& Payload {
-                service_addr: ipstr,
-                service_port: port,
+                service_addr: Vec::new(),
+                service_port: inputs.port,
                 service_claim: epoch(),
-                interface_addr: all_ipstr,
-                key: key,
+                interface_addr: Vec::new(),
+                key: inputs.key,
                 id: 0
             });
 
-            let _rec = cwrite(host, port, & payload);
+            let _rec = cwrite(& inputs.host, inputs.port, & payload);
         }
 
-        "publish" => {
-            assert!(args.contains_id("host"));
-            assert!(args.contains_id("port"));
-            assert!(args.contains_id("interface_name"));
-            assert!(args.contains_id("key"));
-
-            let remote =   args.get_one::<String>("host").unwrap().as_str();
-            let port   = * args.get_one::<i32>("port").unwrap();
-            let key    = * args.get_one::<u64>("key").unwrap();
-
-            let name = args.get_one::<String>("interface_name").unwrap().as_str();
-            let starting_octets = args.get_one::<String>("ip_start");
-            let (ipstr, all_ipstr) = if print_v4 {(
-                get_matching_ipstr(& ips.ipv4_addrs, name, & starting_octets),
-                get_matching_ipstr(& ips.ipv4_addrs, name, & None)
+        CLIOperation::Publish(inputs) => {
+            let remote = inputs.host;
+            let (ipstr, all_ipstr) = if inputs.print_v4 {(
+                get_matching_ipstr(
+                    & ips.ipv4_addrs, & inputs.name, & inputs.starting_octets
+                ),
+                get_matching_ipstr(& ips.ipv4_addrs, & inputs.name, & None)
             )} else {(
-                get_matching_ipstr(& ips.ipv6_addrs, name, & starting_octets),
-                get_matching_ipstr(& ips.ipv6_addrs, name, & None)
+                get_matching_ipstr(
+                    & ips.ipv6_addrs, & inputs.name, & inputs.starting_octets
+                ),
+                get_matching_ipstr(& ips.ipv6_addrs, & inputs.name, & None)
             )};
 
             let payload = serialize(& Payload {
                 service_addr: ipstr.clone(),
-                service_port: port,
+                service_port: inputs.service_port,
                 service_claim: 0,
                 interface_addr: all_ipstr,
-                key: key,
+                key: inputs.key,
                 id: 0
             });
 
             let host = only_or_error(& ipstr);
             let addr = Addr {
                 host: host,
-                port: port
+                port: inputs.service_port
             };
 
             server(& addr, heartbeat_handler);
         }
-
-        &_ => todo!()
     }
 
     Ok(())

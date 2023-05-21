@@ -112,7 +112,10 @@ pub fn heartbeat_handler(stream: & mut TcpStream) -> std::io::Result<()> {
     };
 
     if request.header != 0 {
-        panic!("Non-heartbeat request {} sent to heartbeat_handler", request.header);
+        panic!(
+            "Non-heartbeat request {} sent to heartbeat_handler: {}",
+            request.header, request.body
+        );
     }
 
     let response = serialize_message(& request);

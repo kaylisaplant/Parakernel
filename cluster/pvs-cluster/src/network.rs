@@ -49,17 +49,17 @@ pub fn get_local_ips() -> LocalIpAddresses {
 }
 
 pub fn ipstr_starts_with(
-    ip: & IpAddr, starting_octets: & Option<& String>
+    ip: & IpAddr, starting_octets: & Option<String>
 ) -> bool {
-    match * starting_octets {
-        Some(start) => ip.to_string().starts_with(start),
+    match starting_octets {
+        Some(start) => ip.to_string().starts_with(& * start),
         None => true,
     }
 }
 
 pub fn get_matching_ipstr(
     ips: & Vec<LocalInterface>,
-    interface_name: & str, starting_octets: & Option<& String>
+    interface_name: & str, starting_octets: & Option<String>
 ) -> Vec<String> {
     let mut ipstr = Vec::new();
     let target_name = Some(interface_name.to_string());

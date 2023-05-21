@@ -11,7 +11,7 @@ pub struct Addr<'a> {
 
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Message{
+pub struct Message {
     pub header: u8,
     pub body: String
 }
@@ -63,7 +63,6 @@ pub fn server(
     addr: &Addr, 
     mut handler: impl FnMut(&mut TcpStream) -> std::io::Result<()>
 ) -> std::io::Result<()> {
-    //let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
     let listener = TcpListener::bind(format!("{}:{}", addr.host, addr.port))?;
 
     // accept connections and process them serially
