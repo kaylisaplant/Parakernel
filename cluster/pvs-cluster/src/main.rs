@@ -19,7 +19,6 @@ use std::net::TcpStream;
 
 
 fn main() -> std::io::Result<()> {
-
     let args = init();
     let ips = get_local_ips();
 

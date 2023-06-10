@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 use crate::utils::epoch;
-use crate::connection::{Message, stream_read, serialize_message, deserialize_message};
+use crate::connection::{
+    MessageHeader, Message, stream_read, serialize_message, deserialize_message,
+};
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -111,7 +113,7 @@ pub fn heartbeat_handler(stream: & mut TcpStream) -> std::io::Result<()> {
         Err(message) => panic!("Encountered error {}", message)
     };
 
-    if request.header != 0 {
+    if matches!(request.header, MessageHeader::HB) {
         panic!(
             "Non-heartbeat request {} sent to heartbeat_handler: {}",
             request.header, request.body
