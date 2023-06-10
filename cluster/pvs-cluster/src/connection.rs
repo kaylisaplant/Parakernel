@@ -16,17 +16,19 @@ pub enum MessageHeader {
     HB,
     ACK,
     PUB,
-    CLAIM
+    CLAIM,
+    NULL
 }
 
 
 impl fmt::Display for MessageHeader {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match self {
-           MessageHeader::HB => write!(f, "HB"),
-           MessageHeader::ACK => write!(f, "ACK"),
-           MessageHeader::PUB => write!(f, "PUB"),
-           MessageHeader::CLAIM => write!(f, "CLAIM"),
+        match self {
+            MessageHeader::HB    => write!(f, "HB"),
+            MessageHeader::ACK   => write!(f, "ACK"),
+            MessageHeader::PUB   => write!(f, "PUB"),
+            MessageHeader::CLAIM => write!(f, "CLAIM"),
+            MessageHeader::NULL  => write!(f, "NULL"),
        }
     }
 }
@@ -62,10 +64,10 @@ pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn stream_write(stream: &mut TcpStream, msg: & str) -> std::io::Result<()> {
+pub fn stream_write(stream: &mut TcpStream, msg: & str) -> std::io::Result<usize> {
     // stream.write_all(msg.as_bytes())?;
     match stream.write(msg.as_bytes()) {
-        Ok(n) => Ok(()),
+        Ok(n) => Ok(n),
         Err(err) => Err(err)
     }
 }
@@ -92,19 +94,46 @@ pub fn stream_read(stream: &mut TcpStream) -> std::io::Result<String>{
     Ok(message)
 }
 
-pub fn send(stream: &mut TcpStream, msg: & Message) -> std::io::Result<()> {
-    let msg_str = serialize_message(msg);
-    stream_write(stream, & msg_str);
+pub fn send(stream: &mut TcpStream, msg: & Message) -> std::io::Result<Message> {
+
+    stream_write(stream, & serialize_message(msg));
+
+    if matches!(msg.header, MessageHeader::ACK)
+    || matches!(msg.header, MessageHeader::HB) {
+        return Ok(Message {
+            header: MessageHeader::NULL,
+            body: "".to_string()
+        })
+    }
+
     let response = match stream_read(stream) {
         Ok(message) => deserialize_message(& message),
-        Err(message) => panic!("Encountered error {}", message)
+        Err(err) => {return Err(err);}
     };
 
-    Ok(())
+    Ok(response)
 }
 
-pub fn receive(stream: &mut TcpStream) -> std::io::Result<()> {
-    Ok(())
+pub fn receive(stream: &mut TcpStream) -> std::io::Result<Message> {
+
+    let response = match stream_read(stream) {
+        Ok(message) => deserialize_message(& message),
+        Err(err) => {return Err(err);}
+    };
+
+    if matches!(response.header, MessageHeader::ACK)
+    || matches!(response.header, MessageHeader::HB) {
+        return Ok(response);
+    }
+
+    stream_write(stream, & serialize_message(
+        & Message {
+            header: MessageHeader::ACK,
+            body: "".to_string()
+        }
+    ));
+
+    Ok(response)
 }
 
 
