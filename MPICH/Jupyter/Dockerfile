@@ -45,4 +45,9 @@ CMD ["/srv/entrypoint.sh"]
 
 RUN cp /shft/app/iparaview-kernel/Test.ipynb .
 
+# TODO: This is a hack to get things working on Spin -- in future, use the
+# correct user
+RUN chmod -R g=rwX /root
+RUN chmod -R g=rwX /shft
+
 EXPOSE 8888
