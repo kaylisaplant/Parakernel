@@ -47,18 +47,21 @@ impl State {
     pub fn claim(&mut self, k:u64) -> Result<&mut Payload, u64> {
         match self.clients.get_mut(& k) {
 
-            Some(value) => for v in value {
-                let current_ecpoch = epoch();
-                if current_ecpoch - v.service_claim > self.timeout {
-                    v.service_claim = current_ecpoch;
-                    return Ok(v);
+            Some(value) => {
+                for v in value {
+                    let current_ecpoch = epoch();
+                    if current_ecpoch - v.service_claim > self.timeout {
+                        v.service_claim = current_ecpoch;
+                        return Ok(v);
+                    }
                 }
+                return Err(1);
             }
 
-            _ => return Err(1)
+            _ => return Err(2)
         }
 
-        return Err(2);
+        return Err(3);
     }
 
     pub fn print(&mut self) {
