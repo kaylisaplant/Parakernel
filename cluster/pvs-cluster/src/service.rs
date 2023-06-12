@@ -95,10 +95,17 @@ pub fn request_handler(
         MessageHeader::NULL => panic!("NULL message encountered!"),
     };
 
-    println!("Reqest processed: {:?}", payload);
-    if state.clients.contains_key(& payload.key){
-
+    println!("Reqest received: {:?}", payload);
+    match message.header {
+        MessageHeader::PUB => {
+            println!("Publishing Service: {:?}", payload);
+            state.add(payload);
+        }
+        _ => {panic!("This should not be reached!");}
     }
+
+
+
 
     // let response = "HTTP/1.1 200 OK\r\n\r\n";
     // stream.write(response.as_bytes())?;
