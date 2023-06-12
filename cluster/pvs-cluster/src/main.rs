@@ -111,8 +111,6 @@ fn main() -> std::io::Result<()> {
             };
 
             server(& addr, handler);
-            // let rec = cread(host, port)?;
-            // println!("REC: {:?}", rec);
         }
 
         CLIOperation::Claim(inputs) => {

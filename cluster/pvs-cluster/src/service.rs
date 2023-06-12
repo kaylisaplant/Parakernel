@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::utils::epoch;
 use crate::connection::{
-    MessageHeader, Message, stream_read, serialize_message, deserialize_message,
+    MessageHeader, Message, send, receive, stream_read, serialize_message, deserialize_message,
 };
 
 
@@ -85,9 +85,14 @@ pub fn request_handler(
     state: & mut State, stream: & mut TcpStream
 ) -> std::io::Result<()> {
 
-    let payload = match stream_read(stream) {
-        Ok(message) => deserialize(& message),
-        Err(message) => panic!("Encountered error {}", message)
+    let message = receive(stream)?;
+
+    let payload = match message.header {
+        MessageHeader::HB => panic!("Heartbeat message encountered!"),
+        MessageHeader::ACK => panic!("ACK message encountered!"),
+        MessageHeader::PUB => deserialize(& message.body),
+        MessageHeader::CLAIM => deserialize(& message.body),
+        MessageHeader::NULL => panic!("NULL message encountered!"),
     };
 
     println!("Reqest processed: {:?}", payload);
@@ -95,9 +100,9 @@ pub fn request_handler(
 
     }
 
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
-    stream.write(response.as_bytes())?;
-    stream.flush()?;
+    // let response = "HTTP/1.1 200 OK\r\n\r\n";
+    // stream.write(response.as_bytes())?;
+    // stream.flush()?;
 
     println!("Now state:");
     state.print();
@@ -108,10 +113,7 @@ pub fn request_handler(
 
 pub fn heartbeat_handler(stream: & mut TcpStream) -> std::io::Result<()> {
 
-    let request = match stream_read(stream) {
-        Ok(message) => deserialize_message(& message),
-        Err(message) => panic!("Encountered error {}", message)
-    };
+    let request = receive(stream)?;
 
     if matches!(request.header, MessageHeader::HB) {
         panic!(
@@ -120,9 +122,7 @@ pub fn heartbeat_handler(stream: & mut TcpStream) -> std::io::Result<()> {
         );
     }
 
-    let response = serialize_message(& request);
-    stream.write(response.as_bytes())?;
-    stream.flush()?;
+    send(stream, & Message{header: MessageHeader::HB, body: request.body})?;
 
     Ok(())
 }
