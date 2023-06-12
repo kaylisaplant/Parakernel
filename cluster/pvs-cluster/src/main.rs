@@ -2,7 +2,7 @@ mod network;
 use network::{get_local_ips, get_matching_ipstr};
 
 mod connection;
-use connection::{cwrite, Addr, server};
+use connection::{Message, MessageHeader, connect, Addr, server, send};
 
 mod service;
 use service::{Payload, State, serialize, request_handler, heartbeat_handler};
@@ -123,11 +123,10 @@ fn main() -> std::io::Result<()> {
                 id: 0
             });
 
-            let _rec = cwrite(& inputs.host, inputs.port, & payload);
+            // let _rec = cwrite(& inputs.host, inputs.port, & payload);
         }
 
         CLIOperation::Publish(inputs) => {
-            let remote = inputs.host;
             let (ipstr, all_ipstr) = if inputs.print_v4 {(
                 get_matching_ipstr(
                     & ips.ipv4_addrs, & inputs.name, & inputs.starting_octets
@@ -147,6 +146,14 @@ fn main() -> std::io::Result<()> {
                 interface_addr: all_ipstr,
                 key: inputs.key,
                 id: 0
+            });
+
+            let mut stream = connect(& Addr{
+                host: & inputs.host, port: inputs.port
+            })?;
+            send(&mut stream, & Message{
+                header: MessageHeader::PUB,
+                body: payload
             });
 
             let host = only_or_error(& ipstr);

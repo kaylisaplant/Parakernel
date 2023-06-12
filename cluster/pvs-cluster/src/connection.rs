@@ -51,18 +51,23 @@ pub fn deserialize_message(payload: & String) -> Message {
 }
 
 
-pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
-    let mut stream = TcpStream::connect(format!("{}:{}", addr, port))?;
-
-    stream.write_all(msg.as_bytes())?;
-
-    let mut buffer = [0; 1024];
-    let bytes_read = stream.read(&mut buffer).unwrap();
-    let response = String::from_utf8_lossy(&buffer[..bytes_read]);
-    println!("Received response: {}", response);
-
-    Ok(())
+pub fn connect(addr: &Addr) -> std::io::Result<TcpStream> {
+    TcpStream::connect(format!("{}:{}", addr.host, addr.port))
 }
+
+
+// pub fn cwrite(addr: & str, port: i32, msg: & str) -> std::io::Result<()> {
+//     let mut stream = TcpStream::connect(format!("{}:{}", addr, port))?;
+// 
+//     stream.write_all(msg.as_bytes())?;
+// 
+//     let mut buffer = [0; 1024];
+//     let bytes_read = stream.read(&mut buffer).unwrap();
+//     let response = String::from_utf8_lossy(&buffer[..bytes_read]);
+//     println!("Received response: {}", response);
+// 
+//     Ok(())
+// }
 
 pub fn stream_write(stream: &mut TcpStream, msg: & str) -> std::io::Result<usize> {
     // stream.write_all(msg.as_bytes())?;

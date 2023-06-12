@@ -1,4 +1,3 @@
-
 use pnet::datalink;
 use pnet::ipnetwork::IpNetwork;
 use std::net::IpAddr;

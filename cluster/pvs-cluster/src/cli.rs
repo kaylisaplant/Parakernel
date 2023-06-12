@@ -249,7 +249,7 @@ pub fn parse(args: & ArgMatches) -> CLIOperation {
             let name = args.get_one::<String>("interface_name").unwrap();
             let starting_octets =   args.get_one::<String>("ip_start");
             let bind_port       = * args.get_one::<i32>("bind_port").unwrap();
-            let service_port    = * args.get_one::<i32>("bind_port").unwrap();
+            let service_port    = * args.get_one::<i32>("service_port").unwrap();
             return CLIOperation::Publish(
                 Publish {
                     print_v4: print_v4,
