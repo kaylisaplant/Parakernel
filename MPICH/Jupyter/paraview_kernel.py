@@ -137,7 +137,7 @@ def main():
   app.initialize()
 passkey = open('key.json', 'r')
 master_key= json.loads(passkey.read())
-host = master_key['ip']
+host = master_key['ip'].split("\n")[0]
   # # Launch the server and connect to it
   # process, host, port = launch_paraview_server(app.log)
   # if (process is None or process.poll() is not None):
