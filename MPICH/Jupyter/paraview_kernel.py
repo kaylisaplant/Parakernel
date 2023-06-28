@@ -2,6 +2,7 @@ import atexit
 import os
 import random
 import subprocess
+import json
 from typing import Tuple
 from typing import Dict
 from ipykernel.kernelapp import IPKernelApp
@@ -134,13 +135,15 @@ def main():
   app = IPKernelApp.instance(kernel_class=IParaViewKernel)
   app.name = "IParaView"
   app.initialize()
-
+passkey = open('key.json', 'r')
+master_key= json.loads(passkey.read())
+host = master_key['ip']
   # # Launch the server and connect to it
   # process, host, port = launch_paraview_server(app.log)
   # if (process is None or process.poll() is not None):
   #   app.log.error("Could not launch pvserver")
   #   return
-  host = os.environ["PARAKERNEL_PVSERVER_HOST"]
+ # host = os.environ["PARAKERNEL_PVSERVER_HOST"]
   port = os.environ["PARAKERNEL_PVSERVER_PORT"]
 
   # Run prelude to setup the default environment. Make sure to make the kernel fail if
