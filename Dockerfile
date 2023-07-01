@@ -1,43 +1,36 @@
-FROM jblaschke/paraview:latest 
-
-RUN apt-get -y update
-RUN apt-get -y install git python3 python3-pip python3-dev gcc
-
-RUN pip3 install --upgrade pip
-
-RUN pip3 install notebook==5.4.1
-RUN pip3 install matplotlib numpy scipy
-RUN python3 -m pip install ipykernel
-RUN python3 -m ipykernel install --user
-RUN apt-get install -y npm
-RUN pip3 install wheel
-
-RUN apt-get -y install software-properties-common
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A6DCF7707EBC211F
-RUN apt-add-repository "deb http://ppa.launchpad.net/ubuntu-mozilla-security/ppa/ubuntu focal main"
-RUN apt-get -y update
-RUN apt-get -y install firefox
-
-RUN pip3 install git+https://github.com/NVIDIA/ipyparaview.git
-RUN jupyter nbextension enable --py --sys-prefix ipyparaview
+FROM kmcbride/layeri:latest
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
 WORKDIR /shft/app
-COPY . iparaview-kernel
+RUN git clone https://gitlab.kitware.com/paraview/paraview.git
+WORKDIR /shft/app/paraview
+RUN git submodule update --init --recursive
+RUN mkdir -p shft/app/paraview/build
 
-# Copy updates to the paraview image
-RUN cp /shft/app/iparaview-kernel/docker/conf.d/jupyter.conf /srv/conf.d/
+RUN apt-get install --yes libgl1-mesa-dev
+RUN apt-get install --yes libxt-dev
+RUN apt-get install --yes qt5-default
+RUN apt-get install --yes libqt5x11extras5-dev
+RUN apt-get install --yes libqt5help5
+RUN apt-get install --yes qttools5-dev
+RUN apt-get install --yes qtxmlpatterns5-dev-tools
+RUN apt-get install --yes libqt5svg5-dev
 
-WORKDIR /root/.local/share/jupyter/kernels/paraview
-RUN cmake -DParaView_PREFIX_PATH=/shft/app/paraview/build \
-    /shft/app/iparaview-kernel
-RUN make
-RUN make install
+RUN apt-get install --yes python3-numpy
+RUN apt-get install --yes libtbb-dev
 
-WORKDIR /root
-ENV PYTHONPATH=/shft/app/paraview/build/lib/python3.8/site-packages
-CMD ["/srv/entrypoint.sh"]
-# CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+RUN apt-get install --yes ninja-build
 
-RUN cp /shft/app/iparaview-kernel/Test.ipynb .
+WORKDIR /shft/app/paraview/build
+RUN cmake \
+        -GNinja \
+        -DPARAVIEW_USE_PYTHON=ON \
+        -DPARAVIEW_USE_MPI=ON \
+        -DVTK_SMP_IMPLEMENTATION_TYPE=TBB \
+        -DCMAKE_BUILD_TYPE=Release \
+        ..
 
-EXPOSE 8888
+RUN ninja
+RUN apt-get install --yes mesa-utils libgl1-mesa-glx
+RUN /sbin/ldconfig
+

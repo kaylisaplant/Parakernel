@@ -1,0 +1,13 @@
+services:
+  my_app:
+    image: kmcbride/novnclayer:latest
+    container_name: novnc
+    ports:
+      - "8080:8080"
+    networks:
+      - my-app
+
+networks:
+  my-app:
+    name: jupyter_network
+    external: true
