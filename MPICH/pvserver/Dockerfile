@@ -1,5 +1,5 @@
-# FROM kmcbride/layeri:latest
-FROM parakernel/base:latest
+FROM kmcbride/layeri:latest
+#FROM parakernel/base:latest
 
 # RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
@@ -39,5 +39,6 @@ RUN cmake \
         ..
 
 RUN ninja
+RUN apt-get install --yes iproute2
 ENV PATH="${PATH}:/shft/app/paraview/build/bin"
 RUN /sbin/ldconfig
