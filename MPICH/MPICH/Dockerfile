@@ -10,8 +10,25 @@ ENV LANG C.UTF-8
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
 RUN echo $TZ > /etc/timezone
+RUN apt-get update
+ARG UID
+ARG GID
+
+ENV _uid=$UID
+ENV _gid=$GID
+
+COPY etc/login.defs /etc/
+
+RUN groupadd -g $_gid pvswiftie
+RUN useradd -u $_uid -g $_gid 
+
+RUN mkdir -p /pvswiftie
+RUN chown pvswiftie_usr /pvswiftie
+RUN mkdir -p /home/pvswiftie_user
+RUN chown srv_usr /home/pvswiftie_user
+
+USER pvswiftie_usr
 RUN \
-    apt-get update        && \
     apt-get install --yes --no-install-recommends \
         build-essential                           \
         python3-dev                               \
