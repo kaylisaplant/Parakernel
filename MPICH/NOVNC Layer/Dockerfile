@@ -1,6 +1,6 @@
-# FROM kmcbride/paraviewlayer:latest
-FROM parakernel/pvserver:latest
-
+FROM kmcbride/paraviewlayer:latest
+#FROM parakernel/pvserver:latest
+USER root
 RUN \
     apt-get update && \
     apt-get install --yes \
